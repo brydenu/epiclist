@@ -12,6 +12,17 @@ def connect_db(app):
     db.app = app
     db.init_app(app)
 
+
+class Follows(db.Model):
+    """User to user connection based on who is following who"""
+
+    __tablename__ = 'follows'
+
+    user_being_followed = db.Column(db.Integer, db.ForeignKey('users.id', ondelete="cascade"), primary_key=True)
+
+    user_following = db.Column(db.Integer, db.ForeignKey('users.id', ondelete="cascade"), primary_key=True)
+
+
 class User(db.Model):
     """User information"""
 
@@ -21,13 +32,13 @@ class User(db.Model):
 
     username = db.Column(db.String(20), nullable=False, unique=True)
 
-    image_url = db.Column(db.Text, nullabe=True, default=DEFAULT_IMAGE_URL)
+    image_url = db.Column(db.Text, default=DEFAULT_IMAGE_URL)
 
     bio = db.Column(db.Text, nullable=True)
 
     password = db.Column(db.Text, nullable=False)
 
-    favorite_character = db.Column(db.Integer, nullable=True, db.ForeignKey("characters.id", ondelete="cascade"))
+    # favorite_character = db.Column(db.Integer, db.ForeignKey("characters.id", ondelete="cascade"), nullable=True)
 
     followers = db.relationship("User", 
                                 secondary="follows", 
@@ -73,14 +84,6 @@ class User(db.Model):
         
         return False
 
-class Follows(db.Model):
-    """User to user connection based on who is following who"""
-
-    __tablename__ = 'follows'
-
-    user_being_followed = db.Column(db.Integer, db.ForeignKey(users.id, ondelete="cascade"), primary_key=True)
-
-    user_following = db.Column(db.Integer, db.ForeignKey(users.id, ondelete="cascade"), primary_key=True)
 
 
 class List(db.Model):
@@ -92,7 +95,7 @@ class List(db.Model):
     
     title = db.Column(db.String(50), nullable=False)
 
-    user_id = db.Column(db.Integer, nullable=False, db.ForeignKey(users.id, ondelete="cascade"))
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id', ondelete="cascade"), nullable=False)
 
     ranked = db.Column(db.Boolean, nullable=False)
 
@@ -122,8 +125,8 @@ class ListCharacter(db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
 
-    character_id = db.Column(db.Integer, nullable=False, db.ForeignKey(characters.id, ondelete="cascade"))
+    character_id = db.Column(db.Integer, db.ForeignKey('characters.id', ondelete="cascade"), nullable=False)
 
-    list_id = db.Column(db.Integer, nullable=False, db.ForeignKey(lists.id, ondelete="cascade"))
+    list_id = db.Column(db.Integer, db.ForeignKey('lists.id', ondelete="cascade"), nullable=False)
 
     rank = db.Column(db.Integer, nullable=True)

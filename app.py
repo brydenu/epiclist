@@ -3,15 +3,17 @@ from flask_debugtoolbar import DebugToolbarExtension
 
 from models import db, connect_db, User, Follows, Character, List, ListCharacter
 
-app = FLask(__name__)
+app = Flask(__name__)
 
-app.config["SQLALCHEMY_TRACH_MODIFICATIONS"] = False
+app.config["SQLALCHEMY_DATABASE_URI"] = 'postgres:///epiclist'
+app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 app.config["SQLALCHEMY_ECHO"] = True
 app.config["DEBUG_TB_INTERCEPTS_REDIRECTS"] = False
 app.config["SECRET_KEY"] = "secret"
 
 toolbar = DebugToolbarExtension(app)
 connect_db(app)
+db.create_all()
 
 CURR_USER_KEY = "curr_user"
 
