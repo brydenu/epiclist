@@ -1,7 +1,9 @@
 from flask import Flask, render_template, flash, redirect, session, g
 from flask_debugtoolbar import DebugToolbarExtension
+from forms import CreateUserForm, LoginForm
+from sqlalchemy.exc import IntegrityError
 
-from models import db, connect_db, User, Follows, Character, List, ListCharacter
+from models import db, connect_db, User, Follows, Character, List, ListCharacter, DEFAULT_IMAGE_URL
 
 app = Flask(__name__)
 
@@ -16,7 +18,7 @@ connect_db(app)
 db.create_all()
 
 CURR_USER_KEY = "curr_user"
-
+g.DEFAULT_IMAGE = DEFAULT_IMAGE_URL
 
 @app.before_request
 def add_user_to_g():
@@ -28,7 +30,7 @@ def add_user_to_g():
     else:
         g.user = None
 
-####### ROUTES ###########################
+####### GENERAL ROUTES ###########################
 
 @app.route("/")
 def index():
@@ -38,3 +40,41 @@ def index():
         return redirect("/register-home")
 
     return render_template("index.html", user=g.user)
+
+####### USER ROUTES ###############################
+
+@app.route("/register-home")
+def show_register_home():
+    """Shows register home page (not the actual register form)"""
+
+    if g.user:
+        return redirect("/")
+    
+    return render_template("register-home.html")
+
+@app.route("/register", methods=["GET, POST"])
+def register():
+    """Shows register form if GET. Attempts to create user and add to db if POST"""
+
+    form = CreateUserForm()
+
+    if form.validate_on_submit():
+        try:
+            user = User.signup(
+                username=form.username.data,
+                password=form.password.data,
+                image_url=form.image_url.data or g.DEFAULT_IMAGE
+            )
+            db.session.commit()
+        except IntegrityError:
+            flash("Username taken", "danger")
+            return render_template('register.html', form=form)
+        
+        login_user(user)
+
+        return redirect("/")
+    
+    else:
+        return render_template('register.html', form=form)
+        
+
