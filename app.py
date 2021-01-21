@@ -173,6 +173,22 @@ def search_api():
     res = requests.get(api_query, headers=headers)
     data = json.loads(res.text)
     search_results = data["results"]
-    name = search_results[0]['name']
 
-    return name
+    char_list = []
+
+    for index, result in enumerate(search_results):
+        name = search_results[index]['name']
+        image_url = search_results[index]['image']['tiny_url']
+        game = search_results[index]['first_appeared_in_game']['name']
+        api_id = search_results[index]['id']
+
+        character = {
+            "name": name,
+            "image_url": image_url,
+            "game": game,
+            "api_id": api_id}
+
+        char_list.append(character)
+
+    character_results = {"character_results": char_list}
+    return jsonify(character_results)
