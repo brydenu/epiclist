@@ -1,0 +1,15 @@
+{% extends 'form-base.html' %}
+
+{% block title %}Register{% endblock %}
+
+{% block before_form %}
+<h1>Register</h1>
+{% endblock %}
+
+{% block formaction %}/register{% endblock %}
+
+{% block button_name %}Register!{% endblock %}
+
+{% block after_form %}
+<small class="form-text text-muted">Already have an account? <a href="/login">Login.</a></small>
+{% endblock %}

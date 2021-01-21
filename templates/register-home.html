@@ -3,5 +3,10 @@
 {% block title %}Welcome to Epic List!{% endblock %}
 
 {% block content %}
-<h1>WELCOME TO EPIC LIST</h1>
+<h1>Welcome to EpicList</h1>
+<form action="/register" , method="GET">
+    <button formaction="/login" formmethod="GET" class="btn btn-primary">Login</button>
+    <small class="form-text">Don't have an account?<a href="/register"> Register
+            here!</a></small>
+</form>
 {% endblock %}

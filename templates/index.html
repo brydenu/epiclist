@@ -1,16 +1,8 @@
-<!DOCTYPE html>
-<html lang="en">
+{% extends 'base.html' %}
 
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}Epic List{% endblock %}</title>
-</head>
+{% block title %}Epic List{% endblock %}
 
-<body>
-    {% block content %}
-    <p>YOU ARE HERE</p>
-    {% endblock %}
-</body>
-
-</html>
+{% block content %}
+<p>YOU ARE HERE</p>
+<button class="btn btn-small btn-danger" formaction="/logout" formmethod="GET">Logout</button>
+{% endblock %}
