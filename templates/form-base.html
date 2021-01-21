@@ -1,10 +1,10 @@
 {% extends 'base.html' %}
 {% block content %}
 <div class="row justify-content-center">
-    <div class="col-md-7 col-lg-5">
+    <div class="col">
         {% block before_form %}
         {% endblock %}
-        <form action="{% block formaction %}{% endblock %}" method="POST">
+        <form action=" {% block formaction %}{% endblock %}" method="POST">
             {% for field in form if field.widget.input_type != 'hidden' %}
             {{ form.hidden_tag() }}
             {% for error in field.errors %}

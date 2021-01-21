@@ -1,22 +1,20 @@
-{% extends 'form-base.html' %}
+{% extends 'base.html' %}
 {% block title %}Create a new Epic List{% endblock %}
 
-{% block before_form %}
-<h1>Create a New Epic List</h1>
-<h2>Search for characters</h2>
+{% block content %}
+<div class="header m-2">
+    <h1>Create a New Epic List</h1>
+    <h2 class="mt-5"> Search for characters</h2>
+</div>
 <form action="">
     <label for="character-name">Character name:</label>
     <input type="text" id="character-name" name="character-name">
     <button class="btn btn-primary btn-sm" id="search-btn">Search</button>
 </form>
 
-{% endblock %}
+<div class="container m-3" id="search-results"></div>
 
-{% block formaction %}/lists/new{% endblock %}
 
-{% block button_name %}Create list{% endblock %}
-
-{% block after_form %}
 <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/0.21.1/axios.js"
     integrity="sha512-otOZr2EcknK9a5aa3BbMR9XOjYKtxxscwyRHN6zmdXuRfJ5uApkHB7cz1laWk2g8RKLzV9qv/fl3RPwfCuoxHQ=="
     crossorigin="anonymous"></script>
