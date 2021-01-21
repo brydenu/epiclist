@@ -1,9 +1,10 @@
-from flask import Flask, render_template, flash, redirect, session, g
+from flask import Flask, render_template, flash, redirect, session, g, request, jsonify, json
 from flask_debugtoolbar import DebugToolbarExtension
+import requests
 from forms import CreateUserForm, LoginForm
 from sqlalchemy.exc import IntegrityError
 
-from models import db, connect_db, User, Follows, Character, List, ListCharacter, DEFAULT_IMAGE_URL
+from models import db, connect_db, User, Follows, Character, List, ListCharacter
 
 app = Flask(__name__)
 
@@ -18,7 +19,8 @@ connect_db(app)
 db.create_all()
 
 CURR_USER_KEY = "curr_user"
-g.DEFAULT_IMAGE = DEFAULT_IMAGE_URL
+CURR_USER_USERNAME = "curr_user_username"
+
 
 @app.before_request
 def add_user_to_g():
@@ -32,6 +34,7 @@ def add_user_to_g():
 
 ####### GENERAL ROUTES ###########################
 
+
 @app.route("/")
 def index():
     """Home screen, if not logged in, redirect to registration home screen"""
@@ -41,7 +44,8 @@ def index():
 
     return render_template("index.html", user=g.user)
 
-####### USER ROUTES ###############################
+####### USER FUNCTIONS ###############################
+
 
 @app.route("/register-home")
 def show_register_home():
@@ -49,11 +53,12 @@ def show_register_home():
 
     if g.user:
         return redirect("/")
-    
+
     return render_template("register-home.html")
 
-@app.route("/register", methods=["GET, POST"])
-def register():
+
+@app.route("/register", methods=["GET", "POST"])
+def show_register():
     """Shows register form if GET. Attempts to create user and add to db if POST"""
 
     form = CreateUserForm()
@@ -63,18 +68,111 @@ def register():
             user = User.signup(
                 username=form.username.data,
                 password=form.password.data,
-                image_url=form.image_url.data or g.DEFAULT_IMAGE
+                image_url=form.image_url.data
             )
             db.session.commit()
         except IntegrityError:
             flash("Username taken", "danger")
             return render_template('register.html', form=form)
-        
-        login_user(user)
 
+        do_login(user)
         return redirect("/")
-    
+
     else:
         return render_template('register.html', form=form)
-        
 
+
+@app.route("/login", methods=["GET", "POST"])
+def show_login():
+    """Shows login form if GET. Attempts to authenticate data if POST."""
+
+    form = LoginForm()
+
+    if form.validate_on_submit():
+        user = User.authenticate(
+            username=form.username.data,
+            password=form.password.data
+        )
+        if user:
+            do_login(user)
+            return redirect("/")
+        else:
+            flash("Invalid username or password", "danger")
+            return render_template("login.html", form=form)
+
+    else:
+        return render_template("login.html", form=form)
+
+
+@app.route("/logout", methods=["GET"])
+def logout():
+    """Route to logout user"""
+
+    if not g.user:
+        flash("You need to be signed in to do that", "danger")
+        return redirect("/register-home")
+
+    do_logout()
+    return redirect("/register-home")
+
+
+def do_login(user):
+    """Logs in user (authentication happens in route)"""
+
+    session[CURR_USER_KEY] = user.id
+
+
+def do_logout():
+    """Clears session variable"""
+
+    del session[CURR_USER_KEY]
+
+####### LIST FUNCTIONS ###############################
+
+# @app.route("/lists", methods=["GET"])
+# def show_lists():
+
+
+@app.route("/lists/new", methods=["GET", "POST"])
+def create_list():
+    """Shows create list form if GET. Submits new list if POST"""
+
+    if not g.user:
+        flash("You need to be signed in to do that", "danger")
+        return redirect("/register-home")
+
+    return render_template("new_list.html")
+
+
+# GETTING TO INFORMATION
+# get response --> res
+# get the text from the response --> text = res.text
+# format the text --> data = json.loads(text)
+# get to information --> results = data["results"]
+# results NOW HAS ALL INFORMATION OF ALL RESULTS
+# TO GRAB FIRST RESULT --> res1 = results[0]
+# TO GET NAME aliases = res1["aliases"]
+# IF MULTIPLE NAMES THIS WILL HAVE TO HAVE AN ALGO TO GET NAME
+
+@app.route("/search-characters", methods=["POST"])
+def search_api():
+    """Accepts request from the front end to look for new characters from the API"""
+
+    # if not g.user:
+    #     flash("You need to be signed in to do that", "danger")
+    #     return redirect("/register-home")
+    req = request.json
+    data = json.loads(req["data"])
+
+    api_query = data["query"]
+
+    print(api_query)
+
+    headers = {"User-Agent": "EpicListSearchBot"}
+
+    res = requests.get(api_query, headers=headers)
+    data = json.loads(res.text)
+    search_results = data["results"]
+    name = search_results[0]['name']
+
+    return name
