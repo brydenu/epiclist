@@ -4,15 +4,28 @@
 {% block content %}
 <div class="header m-2">
     <h1>Create a New Epic List</h1>
-    <h2 class="mt-5"> Search for characters</h2>
 </div>
-<form action="">
-    <label for="character-name">Character name:</label>
-    <input type="text" id="character-name" name="character-name">
-    <button class="btn btn-primary btn-sm" id="search-btn">Search</button>
-</form>
+<div class="container">
+    <div class="row">
+        <div class="col">
+            <h2 class="mt-5"> Search for characters</h2>
+            <form action="" onsubmit="return false">
+                <label for="character-name">Character name:</label>
+                <input type="text" id="character-name" name="character-name">
+                <button type="button" class="btn btn-primary btn-sm" id="search-btn">Search</button>
+                <div class="container m-3" id="search-results"></div>
+            </form>
+        </div>
+        <div class="col">
+            <h2 class="mt-5">Current List</h2>
+            <div class="container m-3 border rounded" id="list-container">
 
-<div class="container m-3" id="search-results"></div>
+            </div>
+        </div>
+
+
+    </div>
+</div>
 
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/0.21.1/axios.js"
