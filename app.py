@@ -178,13 +178,15 @@ def search_api():
 
     for index, result in enumerate(search_results):
         name = search_results[index]['name']
-        image_url = search_results[index]['image']['tiny_url']
+        image_url_lg = search_results[index]['image']['thumb_url']
+        image_url_sm = search_results[index]['image']['tiny_url']
         game = search_results[index]['first_appeared_in_game']['name']
         api_id = search_results[index]['id']
 
         character = {
             "name": name,
-            "image_url": image_url,
+            "image_url_lg": image_url_lg,
+            "image_url_sm": image_url_sm,
             "game": game,
             "api_id": api_id}
 
