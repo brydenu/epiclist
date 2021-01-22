@@ -6,6 +6,7 @@ db = SQLAlchemy()
 
 DEFAULT_IMAGE_URL = "http://image"
 
+
 def connect_db(app):
     """Connect db to flask app"""
 
@@ -18,9 +19,11 @@ class Follows(db.Model):
 
     __tablename__ = 'follows'
 
-    user_being_followed = db.Column(db.Integer, db.ForeignKey('users.id', ondelete="cascade"), primary_key=True)
+    user_being_followed = db.Column(db.Integer, db.ForeignKey(
+        'users.id', ondelete="cascade"), primary_key=True)
 
-    user_following = db.Column(db.Integer, db.ForeignKey('users.id', ondelete="cascade"), primary_key=True)
+    user_following = db.Column(db.Integer, db.ForeignKey(
+        'users.id', ondelete="cascade"), primary_key=True)
 
 
 class User(db.Model):
@@ -40,16 +43,18 @@ class User(db.Model):
 
     # favorite_character = db.Column(db.Integer, db.ForeignKey("characters.id", ondelete="cascade"), nullable=True)
 
-    followers = db.relationship("User", 
-                                secondary="follows", 
-                                primaryjoin=(Follows.user_being_followed == id), 
+    followers = db.relationship("User",
+                                secondary="follows",
+                                primaryjoin=(
+                                    Follows.user_being_followed == id),
                                 secondaryjoin=(Follows.user_following == id)
                                 )
-    
+
     following = db.relationship("User",
                                 secondary="follows",
                                 primaryjoin=(Follows.user_following == id),
-                                secondaryjoin=(Follows.user_being_followed == id)
+                                secondaryjoin=(
+                                    Follows.user_being_followed == id)
                                 )
 
     def __repr__(self):
@@ -63,9 +68,9 @@ class User(db.Model):
         hashed_pwd = bcrypt.generate_password_hash(password).decode('UTF-8')
 
         user = User(
-                username=username,
-                password=hashed_pwd,
-                image_url=image_url
+            username=username,
+            password=hashed_pwd,
+            image_url=image_url
         )
 
         db.session.add(user)
@@ -74,16 +79,15 @@ class User(db.Model):
     @classmethod
     def authenticate(cls, username, password):
         """Authenticates user with saved password hash.
-        
+
         Returns False if user/password combo don't match"""
 
         user = cls.query.filter_by(username=username).first()
 
         if user and bcrypt.check_password_hash(user.password, password):
             return user
-        
-        return False
 
+        return False
 
 
 class List(db.Model):
@@ -92,10 +96,11 @@ class List(db.Model):
     __tablename__ = "lists"
 
     id = db.Column(db.Integer, primary_key=True)
-    
+
     title = db.Column(db.String(50), nullable=False)
 
-    user_id = db.Column(db.Integer, db.ForeignKey('users.id', ondelete="cascade"), nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey(
+        'users.id', ondelete="cascade"), nullable=False)
 
     ranked = db.Column(db.Boolean, nullable=False)
 
@@ -105,6 +110,7 @@ class List(db.Model):
 
     characters = db.relationship('Character', secondary="lists_characters")
 
+
 class Character(db.Model):
     """Characters to be added to lists"""
 
@@ -112,11 +118,14 @@ class Character(db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
 
+    api_id = db.Column(db.Integer, nullable=True)
+
     name = db.Column(db.Text, nullable=False)
 
     game = db.Column(db.Text, nullable=False)
 
     description = db.Column(db.Text, nullable=True)
+
 
 class ListCharacter(db.Model):
     """Connection between List and Character"""
@@ -125,8 +134,10 @@ class ListCharacter(db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
 
-    character_id = db.Column(db.Integer, db.ForeignKey('characters.id', ondelete="cascade"), nullable=False)
+    character_id = db.Column(db.Integer, db.ForeignKey(
+        'characters.id', ondelete="cascade"), nullable=False)
 
-    list_id = db.Column(db.Integer, db.ForeignKey('lists.id', ondelete="cascade"), nullable=False)
+    list_id = db.Column(db.Integer, db.ForeignKey(
+        'lists.id', ondelete="cascade"), nullable=False)
 
     rank = db.Column(db.Integer, nullable=True)
