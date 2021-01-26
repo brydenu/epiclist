@@ -45,17 +45,35 @@ function showResults(data) {
     searchContainer.innerHTML = `<div class="list-group" id="list-results"></div>`;
 
     makeListGroupHTML(data, FOR_SEARCH);
-    searchContainer.addEventListener('click', handleAdd);
 };
 
 
 // Create button elements to be list group items in search results. Each button will have a button inside
 // that can be clicked to add the character to the list the user is making.
 function makeListGroupHTML(data, location) {
+
     for (let i = 0; i < data.length; i++) {
+
+
+        let btnClass = null;
+        let btnTitle = null;
+
+        // If list is being implemented for search, an "add" button should appear
+        // If list is being implemented for current list, a "remove" button should appear
+        if (location == FOR_SEARCH) {
+            btnClass = "btn-primary add-btn";
+            btnTitle = "Add";
+        } else if (location == FOR_LIST) {
+            btnClass = "btn-danger remove-btn";
+            btnTitle = "Remove";
+        };
+
+        // Creates necessary HTML for a list-group, with appropriate properties
+        // for each search result taken from attributes from the response object
+        // Uses location param to decide which button to tack on, and where to put the element
         const btnContent = `<button type="button" class="list-group-item list-group-item-action" data-index="${i}">
         <img src="${data[i]["image_url_lg"]}" alt="Picture of ${data[i]["name"]}" class="search-char-image"> ${data[i]["name"]}
-        <span class="btn btn-sm btn-primary add-btn">Add</span></button>`;
+        <span class="btn btn-sm ${btnClass}">${btnTitle}</span></button>`;
         const btn = document.createElement("button");
         btn.innerHTML = btnContent;
         if (location == FOR_SEARCH) {
@@ -65,6 +83,10 @@ function makeListGroupHTML(data, location) {
             listContainer.appendChild(btn.childNodes[0]);
         }
     }
+
+    // Adds event listeners to the lists to listen for a new add or remove
+    searchContainer.addEventListener('click', handleAdd);
+    listContainer.addEventListener('click', handleRemove)
 }
 
 // Function to listen for clicks of the search button and calls searchForCharacter with
@@ -91,6 +113,22 @@ function handleAdd(evt) {
         showList();
     }
 };
+
+// Function to listen for clicks on "remove button" on characters
+// that are already in the list. Should remove them from the UI and 
+// remove them from the array.
+function handleRemove(evt) {
+    evt.preventDefault()
+
+    classes = [...evt.target.classList];
+    if (classes.includes('remove-btn')) {
+        const btn = evt.target.closest("button");
+        const arrIndex = btn.dataset.index;
+
+        currentList.splice(arrIndex, 1);
+        showList();
+    }
+}
 
 
 // Shows current list
