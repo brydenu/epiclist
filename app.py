@@ -1,7 +1,7 @@
 from flask import Flask, render_template, flash, redirect, session, g, request, jsonify, json
 from flask_debugtoolbar import DebugToolbarExtension
 import requests
-from forms import CreateUserForm, LoginForm
+from forms import CreateUserForm, LoginForm, ListForm
 from sqlalchemy.exc import IntegrityError
 
 from models import db, connect_db, User, Follows, Character, List, ListCharacter
@@ -137,11 +137,21 @@ def do_logout():
 def create_list():
     """Shows create list form if GET. Submits new list if POST"""
 
-    if not g.user:
-        flash("You need to be signed in to do that", "danger")
-        return redirect("/register-home")
+    # if not g.user:
+    #     flash("You need to be signed in to do that", "danger")
+    #     return redirect("/register-home")
 
-    return render_template("new_list.html")
+    form = ListForm()
+    if form.validate_on_submit():
+        # WHAT I NEED HERE:
+        # should accept: characters from request
+        # should take: information from form for title, ranked, private
+        # Should create a list object and return properties to front-end
+        req = request.json
+        return jsonify(req)
+
+    # THIS IS WHAT HAPPENS WHEN A GET REQUEST IS SENT
+    return render_template("new_list.html", form=form)
 
 
 # GETTING TO INFORMATION
