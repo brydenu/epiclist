@@ -3,7 +3,7 @@
 
 {% block content %}
 <div class="header m-2">
-    <h1>Create a New Epic List</h1>
+    <h1>New Epic List</h1>
 </div>
 <div class="container">
     <div class="row">
@@ -17,10 +17,22 @@
             </form>
         </div>
         <div class="col">
-            <h2 class="mt-5">Current List</h2>
-            <div class="container m-3 border rounded" id="list-container">
-
-            </div>
+            <h2 class="mt-5">Create a New List</h2>
+            <form action="/lists/new" method="POST">
+                {% for field in form if field.widget.input_type != 'hidden' %}
+                {{ form.hidden_tag() }}
+                {% for error in field.erors %}
+                <span class="form-text text-danger">{{ error }}</span>
+                {% endfor %}
+                <div>
+                    {{ field.label }}
+                    {{ field() }}
+                </div>
+                {% endfor %}
+                <div class="container m-3 border rounded" id="list-container">
+                </div>
+                <button type="button" class="btn btn-success" id="submit-btn">Submit</button>
+            </form>
         </div>
 
 
@@ -32,4 +44,5 @@
     integrity="sha512-otOZr2EcknK9a5aa3BbMR9XOjYKtxxscwyRHN6zmdXuRfJ5uApkHB7cz1laWk2g8RKLzV9qv/fl3RPwfCuoxHQ=="
     crossorigin="anonymous"></script>
 <script src="/static/search.js"></script>
+<script src="/static/list-methods.js"></script>
 {% endblock %}
