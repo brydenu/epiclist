@@ -4,6 +4,8 @@ const searchField = document.getElementById("character-name");
 const searchButton = document.getElementById("search-btn");
 const searchContainer = document.getElementById("search-results");
 const listContainer = document.getElementById("list-container");
+const submitBtn = document.getElementById("submit-btn");
+const formCharacters = document.getElementById("characters");
 const KEY_AND_FORMAT = "?api_key=7257597392c1160f53ddc5354ec336518380ec17&format=json";
 const URL = "http://giantbomb.com/api";
 const TO_BACKEND = "/search-characters";
@@ -15,6 +17,7 @@ let currentSearch = [];
 let currentList = [];
 
 
+/********************* SEARCHING *********************/
 
 // This combines the constants above into a search query that will be sent to the back-end
 // The back-end will query the API and return a response with specific attributes
@@ -47,13 +50,20 @@ function showResults(data) {
     makeListGroupHTML(data, FOR_SEARCH);
 };
 
+// Shows current list
+function showList() {
+    listContainer.innerHTML = "";
+    listContainer.innerHTML = `<div class="list-group" id="current-list"></div>`;
+
+    makeListGroupHTML(currentList, FOR_LIST);
+};
+
 
 // Create button elements to be list group items in search results. Each button will have a button inside
 // that can be clicked to add the character to the list the user is making.
 function makeListGroupHTML(data, location) {
 
     for (let i = 0; i < data.length; i++) {
-
 
         let btnClass = null;
         let btnTitle = null;
@@ -89,6 +99,8 @@ function makeListGroupHTML(data, location) {
     listContainer.addEventListener('click', handleRemove)
 }
 
+/************ EVENT HANDLERS ************************/
+
 // Function to listen for clicks of the search button and calls searchForCharacter with
 // inputs from search field
 async function handleSearch(evt) {
@@ -109,7 +121,11 @@ function handleAdd(evt) {
         const btn = evt.target.closest("button");
         const arrIndex = btn.dataset.index;
 
-        currentList.push(currentSearch[arrIndex]);
+        char = currentSearch[arrIndex];
+
+        currentList.push(char);
+        formCharacters.value = toForm(currentList);
+
         showList();
     }
 };
@@ -126,19 +142,19 @@ function handleRemove(evt) {
         const arrIndex = btn.dataset.index;
 
         currentList.splice(arrIndex, 1);
+        formCharacters.value = toForm(currentList);
         showList();
     }
 }
 
-
-// Shows current list
-function showList() {
-    listContainer.innerHTML = "";
-    listContainer.innerHTML = `<div class="list-group" id="current-list"></div>`;
-
-    makeListGroupHTML(currentList, FOR_LIST);
+// Converts currentList to a string that can input to the hidden characters field
+function toForm(currList) {
+    let guidString = char["guid"];
+    for (let i = 1; i < currList.length; i++) {
+        guidString = guidString + ", " + currList[i]["guid"];
+    }
+    return guidString;
 }
-
 
 searchButton.addEventListener("click", handleSearch);
 
