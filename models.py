@@ -41,7 +41,8 @@ class User(db.Model):
 
     password = db.Column(db.Text, nullable=False)
 
-    # favorite_character = db.Column(db.Integer, db.ForeignKey("characters.id", ondelete="cascade"), nullable=True)
+    favorite_character = db.Column(db.Integer, db.ForeignKey(
+        "characters.id", ondelete="cascade"), nullable=True)
 
     followers = db.relationship("User",
                                 secondary="follows",
@@ -102,9 +103,9 @@ class List(db.Model):
     user_id = db.Column(db.Integer, db.ForeignKey(
         'users.id', ondelete="cascade"), nullable=False)
 
-    ranked = db.Column(db.Boolean, nullable=False)
+    is_ranked = db.Column(db.Boolean, nullable=False)
 
-    private = db.Column(db.Boolean, nullable=False)
+    is_private = db.Column(db.Boolean, nullable=False)
 
     user = db.relationship('User')
 
@@ -118,7 +119,7 @@ class Character(db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
 
-    api_id = db.Column(db.Integer, nullable=True)
+    guid = db.Column(db.Integer, nullable=True)
 
     name = db.Column(db.Text, nullable=False)
 
