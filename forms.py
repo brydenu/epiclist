@@ -1,5 +1,5 @@
 from flask_wtf import FlaskForm
-from wtforms import StringField, PasswordField, TextAreaField, BooleanField
+from wtforms import StringField, PasswordField, TextAreaField, BooleanField, HiddenField
 from wtforms.validators import DataRequired, Length
 
 
@@ -22,5 +22,6 @@ class ListForm(FlaskForm):
     """Create/modify list form"""
 
     title = StringField('Title', validators=[DataRequired()])
-    ranked = BooleanField('Ranked ')
-    private = BooleanField('Private')
+    is_ranked = BooleanField('Ranked')
+    is_private = BooleanField('Private')
+    characters = HiddenField(validators=[DataRequired()])
