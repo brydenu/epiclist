@@ -5,8 +5,8 @@
         {% block before_form %}
         {% endblock %}
         <form action=" {% block formaction %}{% endblock %}" method="POST">
-            {% for field in form if field.widget.input_type != 'hidden' %}
             {{ form.hidden_tag() }}
+            {% for field in form if field.widget.input_type != 'hidden' %}
             {% for error in field.errors %}
             <span class="form-text text-danger">{{ error }}</span>
             {% endfor %}

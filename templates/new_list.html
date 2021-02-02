@@ -4,6 +4,7 @@
 {% block content %}
 <div class="header m-2">
     <h1>New Epic List</h1>
+    <p>Search for characters to add to your new Epic List!</p>
 </div>
 <div class="container">
     <div class="row">
@@ -20,7 +21,8 @@
             <h2 class="mt-5">Create a New List</h2>
             <form action="/lists/new" method="POST">
                 {% for field in form if field.widget.input_type != 'hidden' %}
-                {{ form.hidden_tag() }}
+                {{ form.characters }}
+                {{ form.csrf_token }}
                 {% for error in field.erors %}
                 <span class="form-text text-danger">{{ error }}</span>
                 {% endfor %}
@@ -31,7 +33,7 @@
                 {% endfor %}
                 <div class="container m-3 border rounded" id="list-container">
                 </div>
-                <button type="button" class="btn btn-success" id="submit-btn">Submit</button>
+                <button class="btn btn-success" id="submit-btn">Submit</button>
             </form>
         </div>
 
