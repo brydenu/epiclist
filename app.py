@@ -8,6 +8,7 @@ from models import db, connect_db, User, Follows, Character, List, ListCharacter
 
 app = Flask(__name__)
 
+
 app.config["SQLALCHEMY_DATABASE_URI"] = 'postgres:///epiclist'
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 app.config["SQLALCHEMY_ECHO"] = True
@@ -16,10 +17,12 @@ app.config["SECRET_KEY"] = "secret"
 
 toolbar = DebugToolbarExtension(app)
 connect_db(app)
+db.drop_all()
 db.create_all()
 
 CURR_USER_KEY = "curr_user"
 CURR_USER_USERNAME = "curr_user_username"
+HEADERS = {"User-Agent": "EpicListSearchBot"}
 
 
 @app.before_request
@@ -137,9 +140,9 @@ def do_logout():
 def create_list():
     """Shows create list form if GET. Submits new list if POST"""
 
-    # if not g.user:
-    #     flash("You need to be signed in to do that", "danger")
-    #     return redirect("/register-home")
+    if not g.user:
+        flash("You need to be signed in to do that", "danger")
+        return redirect("/register-home")
 
     form = ListForm()
     if form.validate_on_submit():
@@ -147,12 +150,30 @@ def create_list():
         # should accept: characters from request
         # should take: information from form for title, ranked, private
         # Should create a list object and return properties to front-end
-        req = request.json
-        return jsonify(req)
+        title = form.title.data
+        is_ranked = form.is_ranked.data
+        is_private = form.is_private.data
+        user_id = g.user.id
+        characters = form.characters.data
 
-    # THIS IS WHAT HAPPENS WHEN A GET REQUEST IS SENT
+        queries = convert_guids_to_api_queries(characters)
+        print(queries)
+
+        newList = List(
+            title=title,
+            user_id=user_id,
+            is_ranked=is_ranked,
+            is_private=is_private
+        )
+
+        db.session.add(newList)
+        db.session.commit()
+
+        return redirect("/")
+
     return render_template("new_list.html", form=form)
 
+####### CHARACTER FUNCTIONS ###############################
 
 # GETTING TO INFORMATION
 # get response --> res
@@ -164,43 +185,108 @@ def create_list():
 # TO GET NAME aliases = res1["aliases"]
 # IF MULTIPLE NAMES THIS WILL HAVE TO HAVE AN ALGO TO GET NAME
 
+
 @app.route("/search-characters", methods=["POST"])
 def search_api():
     """Accepts request from the front end to look for new characters from the API"""
 
-    # if not g.user:
-    #     flash("You need to be signed in to do that", "danger")
-    #     return redirect("/register-home")
+    if not g.user:
+        flash("You need to be signed in to do that", "danger")
+        return redirect("/register-home")
+
+    # Get information from request from front-end
     req = request.json
     data = json.loads(req["data"])
 
+    # Information to send in request
     api_query = data["query"]
 
-    print(api_query)
-
-    headers = {"User-Agent": "EpicListSearchBot"}
-
-    res = requests.get(api_query, headers=headers)
+    # Send request and unpack information
+    res = requests.get(api_query, headers=HEADERS)
     data = json.loads(res.text)
     search_results = data["results"]
 
     char_list = []
 
+    # Take only the information neeeded and create objects to add to a
+    # list that will be displayed on front end
     for index, result in enumerate(search_results):
         name = search_results[index]['name']
         image_url_lg = search_results[index]['image']['thumb_url']
         image_url_sm = search_results[index]['image']['tiny_url']
         game = search_results[index]['first_appeared_in_game']['name']
-        api_id = search_results[index]['id']
+        guid = search_results[index]['guid']
 
         character = {
             "name": name,
             "image_url_lg": image_url_lg,
             "image_url_sm": image_url_sm,
             "game": game,
-            "api_id": api_id}
+            "guid": guid,
+            "guid": guid}
 
         char_list.append(character)
 
+    # Send to front end
     character_results = {"character_results": char_list}
     return jsonify(character_results)
+
+
+def convert_guids_to_api_queries(guid_string):
+    """Converts guid string received from front end and turns it into a list
+    of api queries to send to giantbomb"""
+
+    guid_list = guid_string.split(", ")
+
+    query_list = []
+    for guid in guid_list:
+        query = f"https://www.giantbomb.com/api/character/{guid}/?api_key=7257597392c1160f53ddc5354ec336518380ec17&format=json"
+        query_list.append(query)
+
+    return query_list
+
+
+def initialize_character(query):
+    """Queries API to get character data and creates character in DB"""
+
+    res = requests.get(query, headers=HEADERS)
+    data = json.loads(res.text)
+    char_info = data["results"]
+
+    new_char = Character(
+        guid=char_info["guid"]
+        name=char_info["name"]
+        game=game_list_to_string(char_info["games"])
+        description=char_info["description"]
+    )
+
+    db.session.add(new_char)
+    db.session.commit()
+
+    return new_char
+
+
+def game_list_to_string(game_list):
+    """Converts list of games a character has appeared in to a string to store in db"""
+
+    games = ""
+    for game in game_list:
+        name = game["name"]
+        if games == "":
+            games = name
+        else:
+            games = games + ", " + name
+
+    return games
+
+
+def query_list_to_api(query_list):
+    """"""
+
+    for
+
+
+def search_db(character):
+    """Searches database of already saved characters for information,
+    If no information is found, create a new character instance with the 
+    information given."""
