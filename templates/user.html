@@ -1,0 +1,21 @@
+{% extends 'base.html' %}
+
+{% block title %}{{g.user.username}}{% endblock %}
+
+{% block content %}
+<div class="jumbotron">
+    <h1 class="display-4">{{user.username}}</h1>
+</div>
+<div class="row">
+    <div class="col-4">
+        <div class="card">
+            <div class="container p-3">
+                <p>Favorite Character: {{user.favorite_character}}</p>
+                <p>Followers: {{user.followers | length}}</p>
+                <p>Following: {{user.following | length}}</p>
+                <p>Lists: {{user.lists | length}}</p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
