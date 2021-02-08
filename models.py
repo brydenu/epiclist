@@ -107,7 +107,7 @@ class List(db.Model):
 
     is_private = db.Column(db.Boolean, nullable=False)
 
-    user = db.relationship('User')
+    user = db.relationship('User', backref="lists")
 
     characters = db.relationship('Character', secondary="lists_characters")
 
@@ -119,13 +119,13 @@ class Character(db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
 
-    guid = db.Column(db.Integer, nullable=True)
+    guid = db.Column(db.Text, nullable=True)
 
     name = db.Column(db.Text, nullable=False)
 
     game = db.Column(db.Text, nullable=False)
 
-    description = db.Column(db.Text, nullable=True)
+    image_url = db.Column(db.Text, nullable=True)
 
 
 class ListCharacter(db.Model):
@@ -142,3 +142,5 @@ class ListCharacter(db.Model):
         'lists.id', ondelete="cascade"), nullable=False)
 
     rank = db.Column(db.Integer, nullable=True)
+
+    characters = db.relationship('Character', backref="lists_characters")
