@@ -149,7 +149,7 @@ function handleRemove(evt) {
 
 // Converts currentList to a string that can input to the hidden characters field
 function toForm(currList) {
-    let guidString = char["guid"];
+    let guidString = currList[0]["guid"];
     for (let i = 1; i < currList.length; i++) {
         guidString = guidString + ", " + currList[i]["guid"];
     }

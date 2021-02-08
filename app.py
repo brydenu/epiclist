@@ -17,7 +17,7 @@ app.config["SECRET_KEY"] = "secret"
 
 toolbar = DebugToolbarExtension(app)
 connect_db(app)
-db.drop_all()
+
 db.create_all()
 
 CURR_USER_KEY = "curr_user"
@@ -45,7 +45,9 @@ def index():
     if not g.user:
         return redirect("/register-home")
 
-    return render_template("index.html", user=g.user)
+    lists = List.query.all()
+
+    return render_template("index.html", lists=lists)
 
 ####### USER FUNCTIONS ###############################
 
@@ -146,10 +148,6 @@ def create_list():
 
     form = ListForm()
     if form.validate_on_submit():
-        # WHAT I NEED HERE:
-        # should accept: characters from request
-        # should take: information from form for title, ranked, private
-        # Should create a list object and return properties to front-end
         title = form.title.data
         is_ranked = form.is_ranked.data
         is_private = form.is_private.data
@@ -157,7 +155,6 @@ def create_list():
         characters = form.characters.data
 
         queries = convert_guids_to_api_queries(characters)
-        print(queries)
 
         newList = List(
             title=title,
@@ -165,6 +162,10 @@ def create_list():
             is_ranked=is_ranked,
             is_private=is_private
         )
+
+        for q in queries:
+            char = initialize_character(q)
+            newList.characters.append(char)
 
         db.session.add(newList)
         db.session.commit()
@@ -174,16 +175,6 @@ def create_list():
     return render_template("new_list.html", form=form)
 
 ####### CHARACTER FUNCTIONS ###############################
-
-# GETTING TO INFORMATION
-# get response --> res
-# get the text from the response --> text = res.text
-# format the text --> data = json.loads(text)
-# get to information --> results = data["results"]
-# results NOW HAS ALL INFORMATION OF ALL RESULTS
-# TO GRAB FIRST RESULT --> res1 = results[0]
-# TO GET NAME aliases = res1["aliases"]
-# IF MULTIPLE NAMES THIS WILL HAVE TO HAVE AN ALGO TO GET NAME
 
 
 @app.route("/search-characters", methods=["POST"])
@@ -222,7 +213,6 @@ def search_api():
             "image_url_lg": image_url_lg,
             "image_url_sm": image_url_sm,
             "game": game,
-            "guid": guid,
             "guid": guid}
 
         char_list.append(character)
@@ -247,17 +237,25 @@ def convert_guids_to_api_queries(guid_string):
 
 
 def initialize_character(query):
-    """Queries API to get character data and creates character in DB"""
+    """Checks db for character (if char has beeb previously added),
+    if char not added queries API to get character data and creates 
+    character in DB"""
 
     res = requests.get(query, headers=HEADERS)
     data = json.loads(res.text)
     char_info = data["results"]
 
+    char = Character.query.filter(
+        Character.guid == char_info["guid"]).all()
+
+    if char:
+        return char[0]
+
     new_char = Character(
-        guid=char_info["guid"]
-        name=char_info["name"]
-        game=game_list_to_string(char_info["games"])
-        description=char_info["description"]
+        guid=char_info["guid"],
+        name=char_info["name"],
+        game=game_list_to_string(char_info["games"]),
+        image_url=char_info["image"]["thumb_url"]
     )
 
     db.session.add(new_char)
@@ -274,19 +272,34 @@ def game_list_to_string(game_list):
         name = game["name"]
         if games == "":
             games = name
-        else:
+        elif len(games) < 100:
             games = games + ", " + name
 
     return games
 
 
-def query_list_to_api(query_list):
-    """"""
-
-    for
-
-
-def search_db(character):
+def search_db(char_guid):
     """Searches database of already saved characters for information,
     If no information is found, create a new character instance with the 
     information given."""
+
+    char = Character.query.filter(Character.guid == char_guid).all()
+
+    if char_guid:
+        return char[0]
+
+
+####### USER FUNCTIONS ###############################
+
+@app.route("/users/<username>")
+def show_profile(username):
+    """Shows user profile"""
+
+    own_profile = False
+
+    if g.user.username == username:
+        own_profile = True
+
+    user = User.query.filter(User.username == username).first()
+
+    return render_template("user.html", own_profile=own_profile, user=user)
