@@ -3,6 +3,38 @@
 {% block title %}Epic List{% endblock %}
 
 {% block content %}
-<p>YOU ARE HERE</p>
-<button class="btn btn-small btn-danger" formaction="/logout" formmethod="GET">Logout</button>
+<div class="row mt-5">
+    <div class="col-3">
+        <div class="card sticky-top">
+            <img src="{{g.user.image_url}}" class="user-card-image m-3" alt="Image of {{g.user.username}}">
+            <h4><a href="/users/{{g.user.username}}">{{g.user.username}}</a></h4>
+            <p>Followers: {{g.user.followers | length}}</p>
+            <p>Following: {{g.user.following | length}}</p>
+            <p>Lists: {{g.user.lists | length}}</p>
+            <p>Favorite Character: {{g.user.favorite_character}}</p>
+            <p><small><a href="/users/{{g.user.username}}/edit">Edit Profile</a></small></p>
+        </div>
+    </div>
+    <div class="col-9">
+        <div class="row">
+            <div class="col-4">
+
+                {% for list in lists %}
+                <div class="card m-2">
+                    <div class="d-inline">
+                        <div class="h3">{{ list.title }}</div>
+                        <div class="small">By {{ list.user.username }}</div>
+                        <hr>
+                    </div>
+                    {% for character in list.characters %}
+                    <img class="char-image mx-auto d-block" src="{{character.image_url}}"
+                        alt="Picture of {{character.name}}">
+                    <p>{% if list.is_ranked %}{{character}}{% endif %}{{ character.name }}</p>
+                    {% endfor %}
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
 {% endblock %}
