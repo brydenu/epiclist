@@ -316,4 +316,18 @@ def edit_profile(username):
 
     form = EditUserForm(obj=g.user)
 
+    if form.validate_on_submit():
+        try:
+            user.username = form.username.data
+            user.image_url = form.image_url.data
+            user.favorite_character = form.favorite_character
+            db.session.commit()
+
+        except IntegrityError:
+            flash("Username taken", "danger")
+            return render_template('register.html', form=form)
+
+        do_login(user)
+        return redirect("/")
+
     return render_template("edit-profile.html", form=form)
