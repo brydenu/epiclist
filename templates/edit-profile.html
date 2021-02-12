@@ -1,0 +1,13 @@
+{% extends 'form-base.html' %}
+
+{% block title %}
+Edit Profile
+{% endblock %}
+
+{% block before_form %}
+<h1>Edit Profile</h1>
+{% endblock %}
+
+{% block formaction %}/{{g.user.username}}/edit{% endblock %}
+
+{% block button_name %}Confirm Changes{% endblock %}
