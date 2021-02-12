@@ -1,7 +1,7 @@
 from flask import Flask, render_template, flash, redirect, session, g, request, jsonify, json
 from flask_debugtoolbar import DebugToolbarExtension
 import requests
-from forms import CreateUserForm, LoginForm, ListForm
+from forms import CreateUserForm, LoginForm, ListForm, EditUserForm
 from sqlalchemy.exc import IntegrityError
 
 from models import db, connect_db, User, Follows, Character, List, ListCharacter
@@ -46,6 +46,7 @@ def index():
         return redirect("/register-home")
 
     lists = List.query.all()
+    lists.reverse()
 
     return render_template("index.html", lists=lists)
 
@@ -303,3 +304,16 @@ def show_profile(username):
     user = User.query.filter(User.username == username).first()
 
     return render_template("user.html", own_profile=own_profile, user=user)
+
+
+@app.route("/users/<username>/edit", methods=["GET", "POST"])
+def edit_profile(username):
+    """Edit form for user profile"""
+
+    if g.user.username != username:
+        flash("You don't have permission to do that", "danger")
+        return redirect("/")
+
+    form = EditUserForm(obj=g.user)
+
+    return render_template("edit-profile.html", form=form)
