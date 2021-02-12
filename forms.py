@@ -11,6 +11,15 @@ class CreateUserForm(FlaskForm):
     image_url = StringField('(Optional) Image URL')
 
 
+class EditUserForm(FlaskForm):
+    """Form to edit user info. Has more fields than thbe registration form"""
+
+    username = StringField('Username', validators=[DataRequired()])
+    password = PasswordField('Password', validators=[DataRequired()])
+    image_url = StringField('(Optional) Image URL')
+    favorite_character = StringField("(Optional) Favorite Character")
+
+
 class LoginForm(FlaskForm):
     """Login user form"""
 
