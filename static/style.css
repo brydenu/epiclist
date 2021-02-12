@@ -2,6 +2,36 @@
     width:20%
 }
 
-.char-image {
-    width: 20%;
+.background-jumbo {
+    background-color:slategray;
+}
+
+.list-characters {
+    float: left;
+    ;
+}
+
+.big-dots {
+    font-size: 8em;
+    float:left;
+}
+
+.index-lists {
+    margin: auto;
+}
+
+.vertical-center {
+    min-height: 100%;
+    min-height: 100vh;
+
+    display: flex;
+    align-items: center;
+}
+
+#password, #username, #image_url {
+    width: 100%;
+}
+
+.user-card-image {
+    width: 1%;
 }
