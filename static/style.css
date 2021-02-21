@@ -6,22 +6,18 @@
     background-color:slategray;
 }
 
-.list-characters {
-    float: left;
-    ;
+.char-image {
+    max-width: 100%;
+    border-radius: 3%
 }
 
 .big-dots {
     font-size: 8em;
     float:left;
-}
-
-.index-lists {
-    margin: auto;
+    color: slategray;
 }
 
 .vertical-center {
-    min-height: 100%;
     min-height: 100vh;
 
     display: flex;
@@ -33,5 +29,40 @@
 }
 
 .user-card-image {
-    width: 1%;
+    max-width: 100%;
+    height: auto;
+    border-radius:1%;
+}
+
+.user-card {
+    width:20%;
+}
+
+#user-profile-image {
+    border-radius: 5%;
+    max-width: 100%;
+    height: auto;
+}
+
+#profile-jumbo {
+    padding: 10px;
+    border: 2px solid lightgrey;
+}
+
+#profile-lists-jumbo {
+    padding: 10px;
+}
+
+.list-page-image {
+    width: 15%;
+    height: auto;
+}
+
+#list-page-container {
+    border: 2px solid lightgrey;
+    border-radius: 1%;
+}
+
+.list-user-link {
+    color: black;
 }
