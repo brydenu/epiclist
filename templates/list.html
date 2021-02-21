@@ -1,0 +1,29 @@
+{% extends 'base.html' %}
+{% block title %}{{list.title}}{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="jumbotron">
+        <h1 class="display-2 text-center">{{list.list.title}}</h1>
+        <h4 class="text-center"><a href="/users/{{list.list.user.username}}" class="list-user-link">By:
+                {{list.list.user.username}}</a></h4>
+        <table class="table table-striped">
+            <tbody>
+                {% for character in list.characters %}
+                <tr>
+                    {% if list.list.is_ranked %}
+                    <td>
+                        <h2 class="display-2">{{ character.rank }}</h2>
+                    </td>
+                    {% endif %}
+                    <td class="text-center"><img src="{{ character.character.image_url }}"
+                            alt="Image of {{ character.character.name }}" class="list-page-image">
+                        <h4 class="display-4">{{ character.character.name }}</h2>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

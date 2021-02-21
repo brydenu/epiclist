@@ -8,6 +8,11 @@ Edit Profile
 <h1>Edit Profile</h1>
 {% endblock %}
 
-{% block formaction %}/{{g.user.username}}/edit{% endblock %}
+{% block formaction %}/users/{{g.user.username}}/edit{% endblock %}
 
 {% block button_name %}Confirm Changes{% endblock %}
+{% block after_form %}
+<form action="/users/{{g.user.username}}/delete">
+    <button class="btn btn-danger m-2">Delete Account</button>
+</form>
+{% endblock %}

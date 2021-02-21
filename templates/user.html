@@ -1,13 +1,19 @@
 {% extends 'base.html' %}
 
-{% block title %}{{g.user.username}}{% endblock %}
+{% block title %}{{user.username}}{% endblock %}
 
 {% block content %}
-<div class="jumbotron mt-2">
-
-    <h1 class="display-4">{{user.username}}</h1>
+<div class="jumbotron mt-2" id="profile-jumbo">
+    <div class="row">
+        <div class="col-2">
+            <img src="{{user.image_url}}" alt="Image of {{user.username}}" id="user-profile-image">
+        </div>
+        <div class="col-10 align-self-center">
+            <h1 class="display-4">{{user.username}}</h1>
+        </div>
+    </div>
 </div>
-<div class="row">
+<div class="row m-2">
     <div class="col-4">
         <div class="card">
             <div class="container p-3">
@@ -18,47 +24,49 @@
                 <p><small><a href="/users/{{g.user.username}}/edit">Edit Profile</a></small></p>
             </div>
         </div>
+        <div class="card">
+            <div class="container p-3">
+                <h3 class="h3">Bio:</h3>
+                <p>{{user.bio}}</p>
+            </div>
+        </div>
     </div>
-    <div class="col-8">
+    <div class="col-8 jumbotron" id="profile-lists-jumbo">
         <h1 class="h1 text-center">Lists by {{user.username}}</h1>
-        {% for list in user.lists %}
+        {% for dict_item in lists %}
         <div class="card m-2 text-center">
             <div>
-                <div class="h3 pt-4">{{ list.title }}</div>
-                <div class="small">By {{ list.user.username }}</div>
+                <div class="h3 pt-4"><a href="/lists/{{dict_item.list.id}}">{{ dict_item.list.title }}</a>
+                </div>
+                <div class="small"><a href="/users/{{dict_item.list.user.username}}">By
+                        {{ dict_item.list.user.username }}</a></div>
                 <hr>
             </div>
-            <div class="d-inline pb-3 index-lists">
-                {% if list.characters | length < 5 %}
-                {% for character in list.characters %}
-                <div class="list-characters m-3">
-                    <p>{% if list.is_ranked %}{{character}}{% endif %}{{ character.name }}</p>
-                    <img class="char-image" src="{{character.image_url}}" alt="Picture of {{character.name}}">
+            <div class="row pb-3 justify-content-around">
+                {% if dict_item.characters | length < 5 %}
+                {% for character_info in dict_item.characters %}
+                <div class="col-2 m-3">
+                    <p>{% if dict_item.list.is_ranked %}{{character_info.rank}}.
+                        {% endif %}{{ character_info.character.name }}
+                    </p>
+                    <img class="char-image" src="{{character_info.character.image_url}}"
+                        alt="Picture of {{character_info.character.name}}">
                 </div>
                 {% endfor %}
                 {% else %}
-                <div class="list-characters m-3">
-                    <p>{% if list.is_ranked %}{{list.characters[0]}}{% endif %}{{ list.characters[0].name }}</p>
-                    <img class="char-image" src="{{list.characters[0].image_url}}"
-                        alt="Picture of {{list.characters[0].name}}">
+                {% for character_info in dict_item.characters %}
+                {% if loop.index < 4 %}
+                <div class="col-2 m-3">
+                    <p>{% if dict_item.list.is_ranked %}{{character_info.rank}}.
+                        {% endif %}{{ character_info.character.name }}
+                    </p>
+                    <img class="char-image" src="{{character_info.character.image_url}}"
+                        alt="Picture of {{character_info.character.name}}">
                 </div>
-                <div class="list-characters m-3">
-                    <p>{% if list.is_ranked %}{{list.characters[1]}}{% endif %}{{ list.characters[1].name }}</p>
-                    <img class="char-image" src="{{list.characters[1].image_url}}"
-                        alt="Picture of {{list.characters[1].name}}">
-                </div>
-                <div class="list-characters m-3">
-                    <p>{% if list.is_ranked %}{{list.characters[2]}}{% endif %}{{ list.characters[2].name }}</p>
-                    <img class="char-image" src="{{list.characters[2].image_url}}"
-                        alt="Picture of {{list.characters[2].name}}">
-                </div>
-                <div class="list-characters m-3">
-                    <p>{% if list.is_ranked %}{{list.characters[3]}}{% endif %}{{ list.characters[3].name }}</p>
-                    <img class="char-image" src="{{list.characters[3].image_url}}"
-                        alt="Picture of {{list.characters[3].name}}">
-                </div>
+                {% endif %}
+                {% endfor %}
                 <div>
-                    <h1 class="big-dots">. . .</h1>
+                    <h1 class="big-dots">. . . </h1>
                 </div>
                 {% endif %}
             </div>

@@ -3,10 +3,15 @@
 {% block title %}Welcome to Epic List!{% endblock %}
 
 {% block content %}
-<h1>Welcome to EpicList</h1>
-<form action="/register" , method="GET">
-    <button formaction="/login" formmethod="GET" class="btn btn-primary">Login</button>
-    <small class="form-text">Don't have an account?<a href="/register"> Register
-            here!</a></small>
-</form>
+<div class="row text-center vertical-center">
+    <div class="col-sm-12 col-md-8 jumbotron mx-auto">
+        <h1>Welcome to EpicList</h1>
+        <form class="container">
+            <a href="/login" class="btn btn-sm btn-primary">Login</a>
+            <p class="d-inline">or</p>
+            <a href="/register" class="btn btn-sm btn-success">Register</a>
+            <p class="d-inline">to get started.</p>
+        </form>
+    </div>
+</div>
 {% endblock %}
