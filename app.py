@@ -5,16 +5,18 @@ from forms import CreateUserForm, LoginForm, ListForm, EditUserForm
 from sqlalchemy.exc import IntegrityError
 import os
 
-from models import db, connect_db, User, Follows, Character, List, ListCharacter
+from models import db, connect_db, User, Follows, Character, List, ListCharacter, DEFAULT_IMAGE_URL
 
 app = Flask(__name__)
 
 
-app.config["SQLALCHEMY_DATABASE_URI"] = os.environ.get("DATABASE_URL")
+# os.environ.get("DATABASE_URL")
+app.config["SQLALCHEMY_DATABASE_URI"] = "postgres:///epiclist"
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 app.config["SQLALCHEMY_ECHO"] = True
-app.config["DEBUG_TB_INTERCEPTS_REDIRECTS"] = False
-app.config["SECRET_KEY"] = os.environ.get('SECRET_KEY', "secretkey2")
+app.config["DEBUG_TB_INTERCEPT_REDIRECTS"] = False
+# os.environ.get('SECRET_KEY', "secretkey2")
+app.config["SECRET_KEY"] = "Secret"
 
 toolbar = DebugToolbarExtension(app)
 connect_db(app)
@@ -49,9 +51,11 @@ def index():
     lists = List.query.all()
     lists.reverse()
 
+    lists = format_lists(lists)
+
     return render_template("index.html", lists=lists)
 
-####### USER FUNCTIONS ###############################
+####### LOGIN FUNCTIONS ###############################
 
 
 @app.route("/register-home")
@@ -75,7 +79,7 @@ def show_register():
             user = User.signup(
                 username=form.username.data,
                 password=form.password.data,
-                image_url=form.image_url.data
+                image_url=form.image_url.data or DEFAULT_IMAGE_URL
             )
             db.session.commit()
         except IntegrityError:
@@ -149,6 +153,8 @@ def create_list():
         return redirect("/register-home")
 
     form = ListForm()
+
+    # Get information and add list to db
     if form.validate_on_submit():
         title = form.title.data
         is_ranked = form.is_ranked.data
@@ -164,19 +170,103 @@ def create_list():
             is_ranked=is_ranked,
             is_private=is_private
         )
+        db.session.add(newList)
+        db.session.commit()
 
+        # Add characters to list
+        # Add char ids to a list to iterate later if list is ranked
+        char_ids = []
         for q in queries:
             char = initialize_character(q)
             newList.characters.append(char)
+            if newList.is_ranked:
+                char_ids.append(char.id)
 
-        db.session.add(newList)
         db.session.commit()
+
+        # Add ranks to characters if list is ranked
+        if newList.is_ranked:
+            lc = ListCharacter.query.filter(
+                ListCharacter.list_id == newList.id).all()
+            for index, char in enumerate(char_ids):
+                lc[index].rank = index + 1
+            db.session.commit()
 
         return redirect("/")
 
     return render_template("new_list.html", form=form)
 
-####### CHARACTER FUNCTIONS ###############################
+
+@app.route("/lists/<int:list_id>", methods=["GET"])
+def view_list(list_id):
+    """Shows full list"""
+
+    lst = List.query.get_or_404(list_id)
+    user = g.user
+    own_list = False
+
+    if lst.user == user:
+        own_list = True
+
+    lst = format_lists(lst)
+
+    return render_template("list.html", user=user, list=lst, own_list=own_list)
+
+
+def format_lists(lists):
+    """Creates list of dictionaries to easily parse list/ranking info in front end"""
+
+    # Get information about rankings of characters
+    ranked_lists = []
+    if type(lists) == list:
+        for lst in lists:
+
+            chars = []
+            lc = ListCharacter.query.filter(
+                ListCharacter.list_id == lst.id).all()
+
+            for idx, character in enumerate(lst.characters):
+                info = {"character": character, "rank": lc[idx].rank}
+                chars.append(info)
+
+            char_info = {"list": lst, "characters": chars}
+            ranked_lists.append(char_info)
+    else:
+        chars = []
+        lc = ListCharacter.query.filter(
+            ListCharacter.list_id == lists.id).all()
+
+        for idx, character in enumerate(lists.characters):
+            info = {"character": character, "rank": lc[idx].rank}
+            chars.append(info)
+
+        char_info = {"list": lists, "characters": chars}
+        return char_info
+
+    return ranked_lists
+
+
+@app.route("lists/<int:list_id>/delete", methods=["POST"])
+def delete_list(list_id):
+    """Deletes list"""
+
+    if not g.user:
+        flash("You need to be signed in to do that", "danger")
+        return redirect("/register-home")
+
+    lst = List.query.get_or_404(list_id)
+
+    if lst.user.user_id != g.user.id:
+        flash("You don't have permission to do that", "danger")
+        return redirect("/")
+
+    if request.method == 'POST':
+        db.session.delete(lst)
+        db.session.commit()
+        flash("List deleted", "primary")
+        return redirect("/")
+
+        ####### CHARACTER FUNCTIONS ###############################
 
 
 @app.route("/search-characters", methods=["POST"])
@@ -303,13 +393,21 @@ def show_profile(username):
         own_profile = True
 
     user = User.query.filter(User.username == username).first()
+    lists = List.query.filter(List.user_id == user.id).all()
+    lists.reverse()
 
-    return render_template("user.html", own_profile=own_profile, user=user)
+    lists = format_lists(lists)
+
+    return render_template("user.html", own_profile=own_profile, user=user, lists=lists)
 
 
 @app.route("/users/<username>/edit", methods=["GET", "POST"])
 def edit_profile(username):
     """Edit form for user profile"""
+
+    if not g.user:
+        flash("You must sign in or register before you can do that", "danger")
+        return redirect("/register-home")
 
     if g.user.username != username:
         flash("You don't have permission to do that", "danger")
@@ -318,17 +416,48 @@ def edit_profile(username):
     form = EditUserForm(obj=g.user)
 
     if form.validate_on_submit():
-        try:
-            user.username = form.username.data
-            user.image_url = form.image_url.data
-            user.favorite_character = form.favorite_character
-            db.session.commit()
+        user = User.authenticate(
+            username=g.user.username,
+            password=form.password.data
+        )
+        if user:
+            try:
+                user.username = form.username.data
+                user.image_url = form.image_url.data or DEFAULT_IMAGE_URL
+                user.favorite_character = form.favorite_character.data
+                db.session.commit()
 
-        except IntegrityError:
-            flash("Username taken", "danger")
-            return render_template('register.html', form=form)
+            except IntegrityError:
+                flash("Username taken", "danger")
+                return render_template('register.html', form=form)
 
-        do_login(user)
-        return redirect("/")
+            do_login(user)
+            return redirect("/")
+
+        flash("Invalid password", "danger")
+        return render_template("edit-profile.html", form=form)
 
     return render_template("edit-profile.html", form=form)
+
+
+@app.route("/users/<username>/delete", methods=["GET", "POST"])
+def delete_profile(username):
+    """Shows a warning message to confirm deletion"""
+
+    if not g.user:
+        flash("You don't have permission to do that", "danger")
+        return redirect("/")
+
+    if g.user.username != username:
+        flash("You don't have permission to do that", "danger")
+        return redirect("/")
+
+    if request.method == 'POST':
+
+        do_logout()
+        db.session.delete(g.user)
+        db.session.commit()
+
+        return redirect("/register-home")
+
+    return render_template("delete-profile.html")
