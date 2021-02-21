@@ -4,7 +4,7 @@ from flask_bcrypt import Bcrypt
 bcrypt = Bcrypt()
 db = SQLAlchemy()
 
-DEFAULT_IMAGE_URL = "http://image"
+DEFAULT_IMAGE_URL = "https://www.edmundsgovtech.com/wp-content/uploads/2020/01/default-picture_0_0.png"
 
 
 def connect_db(app):
@@ -41,8 +41,7 @@ class User(db.Model):
 
     password = db.Column(db.Text, nullable=False)
 
-    favorite_character = db.Column(db.Integer, db.ForeignKey(
-        "characters.id", ondelete="cascade"), nullable=True)
+    favorite_character = db.Column(db.Text, nullable=True)
 
     followers = db.relationship("User",
                                 secondary="follows",
@@ -57,6 +56,8 @@ class User(db.Model):
                                 secondaryjoin=(
                                     Follows.user_being_followed == id)
                                 )
+
+    lists = db.relationship('List', cascade="all, delete", backref="user")
 
     def __repr__(self):
         """Representation of instances"""
@@ -101,13 +102,11 @@ class List(db.Model):
     title = db.Column(db.String(50), nullable=False)
 
     user_id = db.Column(db.Integer, db.ForeignKey(
-        'users.id', ondelete="cascade"), nullable=False)
+        'users.id', ondelete="CASCADE"), nullable=False)
 
     is_ranked = db.Column(db.Boolean, nullable=False)
 
     is_private = db.Column(db.Boolean, nullable=False)
-
-    user = db.relationship('User', backref="lists")
 
     characters = db.relationship('Character', secondary="lists_characters")
 
@@ -136,10 +135,10 @@ class ListCharacter(db.Model):
     id = db.Column(db.Integer, primary_key=True)
 
     character_id = db.Column(db.Integer, db.ForeignKey(
-        'characters.id', ondelete="cascade"), nullable=False)
+        'characters.id', ondelete="CASCADE"), nullable=False)
 
     list_id = db.Column(db.Integer, db.ForeignKey(
-        'lists.id', ondelete="cascade"), nullable=False)
+        'lists.id', ondelete="CASCADE"), nullable=False)
 
     rank = db.Column(db.Integer, nullable=True)
 
