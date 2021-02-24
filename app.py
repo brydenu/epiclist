@@ -48,12 +48,19 @@ def index():
     if not g.user:
         return redirect("/register-home")
 
-    lists = List.query.all()
+    list_filter = request.args.get("filter", False)
+
+    if list_filter:
+        lists = List.query.filter(
+            List.user_id.in_(g.user.following_ids())).filter(List.is_private == False).all()
+    else:
+        lists = List.query.filter(List.is_private == False).all()
+
     lists.reverse()
 
     lists = format_lists(lists)
 
-    return render_template("index.html", lists=lists)
+    return render_template("index.html", lists=lists, filtered=list_filter)
 
 ####### LOGIN FUNCTIONS ###############################
 
@@ -140,9 +147,6 @@ def do_logout():
 
 ####### LIST FUNCTIONS ###############################
 
-# @app.route("/lists", methods=["GET"])
-# def show_lists():
-
 
 @app.route("/lists/new", methods=["GET", "POST"])
 def create_list():
@@ -173,24 +177,7 @@ def create_list():
         db.session.add(newList)
         db.session.commit()
 
-        # Add characters to list
-        # Add char ids to a list to iterate later if list is ranked
-        char_ids = []
-        for q in queries:
-            char = initialize_character(q)
-            newList.characters.append(char)
-            if newList.is_ranked:
-                char_ids.append(char.id)
-
-        db.session.commit()
-
-        # Add ranks to characters if list is ranked
-        if newList.is_ranked:
-            lc = ListCharacter.query.filter(
-                ListCharacter.list_id == newList.id).all()
-            for index, char in enumerate(char_ids):
-                lc[index].rank = index + 1
-            db.session.commit()
+        organize_characters(queries, newList, True)
 
         return redirect("/")
 
@@ -208,6 +195,10 @@ def view_list(list_id):
     if lst.user == user:
         own_list = True
 
+    if lst.is_private and not own_list:
+        flash("You are not permitted to see that private list", "danger")
+        return redirect("/")
+
     lst = format_lists(lst)
 
     return render_template("list.html", user=user, list=lst, own_list=own_list)
@@ -216,37 +207,45 @@ def view_list(list_id):
 def format_lists(lists):
     """Creates list of dictionaries to easily parse list/ranking info in front end"""
 
-    # Get information about rankings of characters
-    ranked_lists = []
+    # If one EpicList (on specific list page), format differently
+    # than if you have a list of EpicLists like in the home screen or
+    # user page.
     if type(lists) == list:
+        ranked_lists = []
         for lst in lists:
+            l = format_list(lst)
+            ranked_lists.append(l)
+        return ranked_lists
 
-            chars = []
-            lc = ListCharacter.query.filter(
-                ListCharacter.list_id == lst.id).all()
-
-            for idx, character in enumerate(lst.characters):
-                info = {"character": character, "rank": lc[idx].rank}
-                chars.append(info)
-
-            char_info = {"list": lst, "characters": chars}
-            ranked_lists.append(char_info)
     else:
-        chars = []
-        lc = ListCharacter.query.filter(
-            ListCharacter.list_id == lists.id).all()
+        return format_list(lists)
 
-        for idx, character in enumerate(lists.characters):
-            info = {"character": character, "rank": lc[idx].rank}
+
+def format_list(lst):
+    """Format single list, used in format_lists()"""
+    chars = []
+    lc = ListCharacter.query.filter(
+        ListCharacter.list_id == lst.id).all()
+
+    for character in lst.characters:
+
+        rank = ""
+        for list_char in lc:
+            if list_char.character_id == character.id:
+                rank = list_char.rank
+
+        info = {"character": character, "rank": rank}
+
+        if lst.is_ranked:
+            chars.insert(rank-1, info)
+        else:
             chars.append(info)
 
-        char_info = {"list": lists, "characters": chars}
-        return char_info
-
-    return ranked_lists
+    char_info = {"list": lst, "characters": chars}
+    return char_info
 
 
-@app.route("lists/<int:list_id>/delete", methods=["POST"])
+@app.route("/lists/<int:list_id>/delete", methods=["POST"])
 def delete_list(list_id):
     """Deletes list"""
 
@@ -256,17 +255,109 @@ def delete_list(list_id):
 
     lst = List.query.get_or_404(list_id)
 
-    if lst.user.user_id != g.user.id:
+    if lst.user_id != g.user.id:
         flash("You don't have permission to do that", "danger")
         return redirect("/")
 
-    if request.method == 'POST':
-        db.session.delete(lst)
-        db.session.commit()
-        flash("List deleted", "primary")
+    db.session.delete(lst)
+    db.session.commit()
+    flash("List deleted", "primary")
+    return redirect("/")
+
+
+@app.route("/lists/<int:list_id>/edit", methods=["GET", "POST"])
+def edit_list(list_id):
+    """Sends POST request to edit a list or sends edit list screen with characters
+    from list in the form"""
+
+    if not g.user:
+        flash("You need to be signed in to do that", "danger")
+        return redirect("/register-home")
+
+    l = format_lists(List.query.get_or_404(list_id))
+    lst = l["list"]
+
+    if lst.user_id != g.user.id:
+        flash("You don't have permission to do that", "danger")
         return redirect("/")
 
-        ####### CHARACTER FUNCTIONS ###############################
+    form = ListForm(obj=lst)
+
+    if request.method == 'POST' and form.validate_on_submit():
+
+        lst.title = form.title.data
+        lst.is_ranked = form.is_ranked.data
+        lst.is_private = form.is_private.data
+
+        characters = form.characters.data
+
+        queries = convert_guids_to_api_queries(characters)
+
+        organize_characters(queries, lst, False)
+
+        return redirect(f"/lists/{lst.id}")
+
+    return render_template("edit-list.html", list=l, form=form)
+
+
+@app.route("/get-list/<int:list_id>", methods=["GET"])
+def send_list(list_id):
+    """Accepts a list id from the front end, sends characters to display
+    while editing lists"""
+
+    lst = format_lists(List.query.get_or_404(list_id))
+    chars = lst["characters"]
+
+    to_send = []
+    for c in chars:
+        char = c["character"]
+        character = {
+            "name": char.name,
+            "image_url": char.image_url,
+            "guid": char.guid
+        }
+        to_send.append(character)
+
+    characters = {"characters": to_send}
+    return jsonify(characters)
+
+
+def organize_characters(queries, lst, new):
+    """Prepares and adds characters to a list (ranked and unranked)
+    Last field regards to if list is a new list or editing an already made list"""
+    # Add characters to list
+    # Add char ids to a list to iterate later if list is ranked
+    char_ids = []
+    lst.characters.clear()
+
+    if lst.is_ranked and not new:
+        lc = ListCharacter.query.filter(ListCharacter.list_id == lst.id).all()
+        for char in lc:
+            db.session.delete(char)
+            db.session.commit()
+
+    for q in queries:
+        char = initialize_character(q)
+        lst.characters.append(char)
+
+        if lst.is_ranked:
+            char_ids.append(char.id)
+
+    db.session.commit()
+
+    # Add ranks to characters if list is ranked
+    if lst.is_ranked:
+        lc = ListCharacter.query.filter(
+            ListCharacter.list_id == lst.id).all()
+        for index, char in enumerate(char_ids):
+            lc[index].rank = index + 1
+        print(lc, char_ids)
+        db.session.commit()
+
+        return
+
+
+####### CHARACTER FUNCTIONS ###############################
 
 
 @app.route("/search-characters", methods=["POST"])
@@ -295,16 +386,12 @@ def search_api():
     # list that will be displayed on front end
     for index, result in enumerate(search_results):
         name = search_results[index]['name']
-        image_url_lg = search_results[index]['image']['thumb_url']
-        image_url_sm = search_results[index]['image']['tiny_url']
-        game = search_results[index]['first_appeared_in_game']['name']
+        image_url = search_results[index]['image']['thumb_url']
         guid = search_results[index]['guid']
 
         character = {
             "name": name,
-            "image_url_lg": image_url_lg,
-            "image_url_sm": image_url_sm,
-            "game": game,
+            "image_url": image_url,
             "guid": guid}
 
         char_list.append(character)
@@ -330,7 +417,7 @@ def convert_guids_to_api_queries(guid_string):
 
 def initialize_character(query):
     """Checks db for character (if char has beeb previously added),
-    if char not added queries API to get character data and creates 
+    if char not added queries API to get character data and creates
     character in DB"""
 
     res = requests.get(query, headers=HEADERS)
@@ -340,20 +427,20 @@ def initialize_character(query):
     char = Character.query.filter(
         Character.guid == char_info["guid"]).all()
 
-    if char:
-        return char[0]
+    if not char:
+        new_char = Character(
+            guid=char_info["guid"],
+            name=char_info["name"],
+            game=game_list_to_string(char_info["games"]),
+            image_url=char_info["image"]["thumb_url"]
+        )
 
-    new_char = Character(
-        guid=char_info["guid"],
-        name=char_info["name"],
-        game=game_list_to_string(char_info["games"]),
-        image_url=char_info["image"]["thumb_url"]
-    )
+        db.session.add(new_char)
+        db.session.commit()
 
-    db.session.add(new_char)
-    db.session.commit()
+        return new_char
 
-    return new_char
+    return char[0]
 
 
 def game_list_to_string(game_list):
@@ -372,7 +459,7 @@ def game_list_to_string(game_list):
 
 def search_db(char_guid):
     """Searches database of already saved characters for information,
-    If no information is found, create a new character instance with the 
+    If no information is found, create a new character instance with the
     information given."""
 
     char = Character.query.filter(Character.guid == char_guid).all()
@@ -425,6 +512,7 @@ def edit_profile(username):
                 user.username = form.username.data
                 user.image_url = form.image_url.data or DEFAULT_IMAGE_URL
                 user.favorite_character = form.favorite_character.data
+                user.bio = form.bio.data
                 db.session.commit()
 
             except IntegrityError:
@@ -432,7 +520,7 @@ def edit_profile(username):
                 return render_template('register.html', form=form)
 
             do_login(user)
-            return redirect("/")
+            return redirect(f"/users/{g.user.username}")
 
         flash("Invalid password", "danger")
         return render_template("edit-profile.html", form=form)
@@ -461,3 +549,55 @@ def delete_profile(username):
         return redirect("/register-home")
 
     return render_template("delete-profile.html")
+
+
+@app.route("/users/<int:user_id>/follow", methods=["POST"])
+def follow_user(user_id):
+    """Currently logged in user will start following the selected user"""
+
+    if not g.user:
+        flash("You must be signed in to do that", "danger")
+        return redirect("/")
+
+    user_to_follow = User.query.get_or_404(user_id)
+
+    g.user.following.append(user_to_follow)
+    db.session.commit()
+
+    return redirect(f"/users/{user_to_follow.username}")
+
+
+@app.route("/users/<int:user_id>/unfollow", methods=["POST"])
+def unollow_user(user_id):
+    """Currently logged in user will stop following the selected user"""
+
+    if not g.user:
+        flash("You must be signed in to do that", "danger")
+        return redirect("/")
+
+    user_to_follow = User.query.get_or_404(user_id)
+
+    g.user.following.remove(user_to_follow)
+    db.session.commit()
+
+    return redirect(f"/users/{user_to_follow.username}")
+
+
+@app.route("/users/<username>/private-lists", methods=["GET"])
+def see_private_lists(username):
+    """Page to see user's private lists (only way you can see private lists)"""
+
+    if not g.user and g.user.username != username:
+        flash("You don't have permission to see that", "danger")
+        return redirect("/")
+
+    user = User.query.filter(User.username == username).first()
+
+    l = List.query.filter(List.user_id == user.id).filter(
+        List.is_private == True).all()
+
+    l.reverse()
+
+    lists = format_lists(l)
+
+    return render_template("private-lists.html", lists=lists)
