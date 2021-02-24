@@ -63,6 +63,21 @@ class User(db.Model):
         """Representation of instances"""
         return f"<User Instance | ID: {self.id} | Username: {self.username}>"
 
+    def following_ids(self):
+        """Returns a list of user ids that this user is following"""
+
+        ids = []
+        for usr in self.following:
+            ids.append(usr.id)
+
+        return ids
+
+    def public_lists(self):
+        """Returns all public lists"""
+
+        return List.query.filter(List.user_id == self.id).filter(
+            List.is_private == False).all()
+
     @classmethod
     def signup(cls, username, password, image_url):
         """Creates user with hashed password"""
