@@ -13,6 +13,7 @@ const FIELDS = "&resources=character&limit=10";
 const FOR_SEARCH = "search";
 const FOR_LIST = "list";
 
+let ranked_check = document.getElementById("is_ranked")
 let currentSearch = [];
 let currentList = [];
 
@@ -78,19 +79,26 @@ function makeListGroupHTML(data, location) {
             btnTitle = "Remove";
         };
 
+        let arrows = "";
+        let rank = "";
+        if (ranked_check.checked && location == FOR_LIST) {
+            arrows = `<span class="arrow-btns float-right col-1" style="font-size:1.5em; color:lightblue;"><i class="fas fa-caret-square-up m-2"></i><i class="fas fa-caret-square-down m-2"></i></span>`;
+            rank = `<p class="display-4 col-1 float-left">${i + 1}</p>`;
+        }
+
         // Creates necessary HTML for a list-group, with appropriate properties
         // for each search result taken from attributes from the response object
         // Uses location param to decide which button to tack on, and where to put the element
-        const btnContent = `<button type="button" class="list-group-item list-group-item-action" data-index="${i}">
-        <img src="${data[i]["image_url_lg"]}" alt="Picture of ${data[i]["name"]}" class="search-char-image"> ${data[i]["name"]}
-        <span class="btn btn-sm ${btnClass}">${btnTitle}</span></button>`;
-        const btn = document.createElement("button");
-        btn.innerHTML = btnContent;
+        const divContent = `<div class="list-group-item list-group-item-action row list-character justify-content-between" data-index="${i}">${rank}
+        <img src="${data[i]["image_url"]}" alt="Picture of ${data[i]["name"]}" class="col-8 search-char-image"> ${data[i]["name"]}
+        <button class="btn btn-sm ${btnClass}">${btnTitle}</button>${arrows}</div>`;
+        const div = document.createElement("div");
+        div.innerHTML = divContent;
         if (location == FOR_SEARCH) {
-            searchContainer.appendChild(btn.childNodes[0]);
+            searchContainer.appendChild(div.childNodes[0]);
             currentSearch.push(data[i]);
         } else if (location == FOR_LIST) {
-            listContainer.appendChild(btn.childNodes[0]);
+            listContainer.appendChild(div.childNodes[0]);
         }
     }
 
@@ -118,8 +126,8 @@ function handleAdd(evt) {
     // Should only work if the clicked element is an add button
     classes = [...evt.target.classList];
     if (classes.includes('add-btn')) {
-        const btn = evt.target.closest("button");
-        const arrIndex = btn.dataset.index;
+        const div = evt.target.closest("div");
+        const arrIndex = div.dataset.index;
 
         char = currentSearch[arrIndex];
 
@@ -130,6 +138,27 @@ function handleAdd(evt) {
     }
 };
 
+function handleMove(evt) {
+    const classes = [...evt.target.classList];
+    const div = evt.target.closest("div");
+    const arrIndex = div.dataset.index;
+
+    char = currentList[arrIndex];
+
+    if (classes.includes("fa-caret-square-up")) {
+        currentList.splice(arrIndex, 1)
+        currentList.splice((arrIndex - 1), 0, char)
+    } else if (classes.includes("fa-caret-square-down")) {
+        currentList.splice(arrIndex, 1)
+        currentList.splice((arrIndex + 1), 0, char)
+    }
+
+    formCharacters.value = toForm(currentList);
+    showList();
+
+}
+
+
 // Function to listen for clicks on "remove button" on characters
 // that are already in the list. Should remove them from the UI and 
 // remove them from the array.
@@ -138,11 +167,17 @@ function handleRemove(evt) {
 
     classes = [...evt.target.classList];
     if (classes.includes('remove-btn')) {
-        const btn = evt.target.closest("button");
-        const arrIndex = btn.dataset.index;
+        const div = evt.target.closest("div");
+        const arrIndex = div.dataset.index;
 
-        currentList.splice(arrIndex, 1);
-        formCharacters.value = toForm(currentList);
+        if (currentList.length < 2 && arrIndex == 0) {
+            currentList = [];
+            formCharacters.value = "";
+        } else {
+            currentList.splice(arrIndex, 1);
+            formCharacters.value = toForm(currentList);
+        }
+
         showList();
     }
 }
@@ -156,11 +191,48 @@ function toForm(currList) {
     return guidString;
 }
 
+
+
+// Function for handling when the checkbox of "ranked" is switched on.
+// When on, show ranks and arrows to change ranks
+// When off, remove ranks and remove arrows
+function handleRankedCheckbox() {
+
+    const arrowContainer = document.getElementsByClassName("arrow-btns")
+
+    if (ranked_check.checked) {
+        const arrows = `<span class="arrow-btns float-right" style="font-size:2em; color:lightblue;"><i class="fas fa-caret-square-up m-2"></i><i class="fas fa-caret-square-down m-2"></i></span>`;
+        for (characterButton of arrowContainer) {
+            characterButton.innerHTML = arrows;
+        }
+    } else {
+        for (characterButton of arrowContainer) {
+            characterButton.innerHTML = "";
+        }
+    }
+    showList()
+}
+
+// If user is editing an already made list, this function will fill the 
+// characters side with the characters in the list
+async function fillListForEdit() {
+    if (window.location.href.includes("edit")) {
+        const listId = document.getElementById("edit-list-title").dataset.listid;
+
+        const req = await axios.get(`/get-list/${listId}`)
+        characters = req.data.characters
+        for (char of characters) {
+            currentList.push(char)
+        }
+        showList()
+    }
+
+}
+
+listContainer.addEventListener("click", handleMove);
 searchButton.addEventListener("click", handleSearch);
-
-
-
-
+ranked_check.addEventListener("click", handleRankedCheckbox);
+fillListForEdit();
 
 
 
