@@ -18,6 +18,7 @@ class EditUserForm(FlaskForm):
     password = PasswordField('Password', validators=[DataRequired()])
     image_url = StringField('(Optional) Image URL')
     favorite_character = StringField("(Optional) Favorite Character")
+    bio = TextAreaField("(Optional) Bio")
 
 
 class LoginForm(FlaskForm):
