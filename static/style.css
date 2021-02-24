@@ -42,11 +42,13 @@
     border-radius: 5%;
     max-width: 100%;
     height: auto;
+    max-height: 180px;
 }
 
 #profile-jumbo {
     padding: 10px;
     border: 2px solid lightgrey;
+    height: 200px;
 }
 
 #profile-lists-jumbo {
@@ -65,4 +67,9 @@
 
 .list-user-link {
     color: black;
+    font-weight: normal;;
+}
+
+.list-character {
+    min-height: 80px;
 }
