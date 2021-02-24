@@ -5,9 +5,16 @@
 <div class="container mt-5">
     <div class="jumbotron">
         <h1 class="display-2 text-center">{{list.list.title}}</h1>
-        <h4 class="text-center"><a href="/users/{{list.list.user.username}}" class="list-user-link">By:
-                {{list.list.user.username}}</a></h4>
-        <table class="table table-striped">
+        {% if own_list %}
+        <form action="/lists/{{list.list.id}}/edit" class="text-center">
+            <h4 class="d-inline"><a href="/users/{{list.list.user.username}}" class="list-user-link">By:
+                    {{list.list.user.username}}</a></h4>
+            <button class="btn btn-sm btn-warning">Edit</button>
+            <button class="btn btn-sm btn-danger" formaction="/lists/{{list.list.id}}/delete"
+                formmethod="POST">Delete</button>
+        </form>
+        {% endif %}
+        <table class="table table-striped mt-3">
             <tbody>
                 {% for character in list.characters %}
                 <tr>

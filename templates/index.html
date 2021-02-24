@@ -11,14 +11,21 @@
                 <h4 class="pt-2"><a href="/users/{{g.user.username}}">{{g.user.username}}</a></h4>
                 <p>Followers: {{g.user.followers | length}}</p>
                 <p>Following: {{g.user.following | length}}</p>
-                <p>Lists: {{g.user.lists | length}}</p>
+                <p>Public Lists: {{g.user.public_lists() | length}}</p>
                 <p>Favorite Character: {{g.user.favorite_character}}</p>
                 <p><small><a href="/users/{{g.user.username}}/edit">Edit Profile</a></small></p>
             </div>
         </div>
         <div class="col-lg-9 col-md-12">
             <div class="jumbotron">
-                <h1 class="h1 text-center mb-5">All Recent Lists</h1>
+                <h1 class="display-3 text-center m-1">Lists</h1>
+                <div class="text-center mb-1">
+                    {% if filtered %}
+                    <a href="/">All Lists</a> | <a href="/?filter=true"><b>Users you follow</b></a>
+                    {% else %}
+                    <a href="/"><b>All Lists</b></a> | <a href="/?filter=true">Users you follow</a>
+                    {% endif %}
+                </div>
                 {% for dict_item in lists %}
                 <div class="card m-2 text-center">
                     <div>

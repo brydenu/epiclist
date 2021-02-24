@@ -10,6 +10,16 @@
         </div>
         <div class="col-10 align-self-center">
             <h1 class="display-4">{{user.username}}</h1>
+            {% if not own_profile %}
+            {% if user not in g.user.following %}
+            <form action="/users/{{user.id}}/follow" method="POST">
+                <button class="btn btn-sm btn-primary">Follow</button>
+                {% else  %}
+                <form action="/users/{{user.id}}/unfollow" method="POST">
+                    <button class="btn btn-sm btn-outline-primary">Following</button>
+                    {% endif %}
+                    {% endif %}
+                </form>
         </div>
     </div>
 </div>
@@ -20,7 +30,7 @@
                 <p>Favorite Character: {{user.favorite_character}}</p>
                 <p>Followers: {{user.followers | length}}</p>
                 <p>Following: {{user.following | length}}</p>
-                <p>Lists: {{user.lists | length}}</p>
+                <p>Public Lists: {{user.public_lists() | length}}</p>
                 <p><small><a href="/users/{{g.user.username}}/edit">Edit Profile</a></small></p>
             </div>
         </div>
@@ -31,9 +41,12 @@
             </div>
         </div>
     </div>
-    <div class="col-8 jumbotron" id="profile-lists-jumbo">
-        <h1 class="h1 text-center">Lists by {{user.username}}</h1>
-        {% for dict_item in lists %}
+    <div class="col-8 jumbotron text-center" id="profile-lists-jumbo">
+        <h1 class="display-4">Lists by {{user.username}}</h1>
+        {% if own_profile %}
+        <small><a href="/users/{{user.username}}/private-lists">See your private lists</a></small>
+        {% endif %}
+        {% for dict_item in lists if dict_item.list.is_private != True %}
         <div class="card m-2 text-center">
             <div>
                 <div class="h3 pt-4"><a href="/lists/{{dict_item.list.id}}">{{ dict_item.list.title }}</a>
@@ -72,6 +85,16 @@
             </div>
         </div>
         {% endfor %}
+        {% if user.public_lists() | length < 1 %}
+        <div class="text-center">
+            {% if own_profile %}
+            <p>You haven't created any public lists yet, you can <a href="/lists/new">create one
+                    now!</a></p>
+            {% else %}
+            <p>This user hasn't created any public lists yet!</p>
+            {% endif %}
+            {% endif %}
+        </div>
     </div>
 </div>
 {% endblock %}
