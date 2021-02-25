@@ -186,7 +186,7 @@ def create_list():
 
 @app.route("/lists/<int:list_id>", methods=["GET"])
 def view_list(list_id):
-    """Shows full list"""
+    """Shows single full list"""
 
     lst = List.query.get_or_404(list_id)
     user = g.user
@@ -205,7 +205,11 @@ def view_list(list_id):
 
 
 def format_lists(lists):
-    """Creates list of dictionaries to easily parse list/ranking info in front end"""
+    """
+    Used when viewing lists (not creating or editing)
+
+    Creates list of dictionaries to easily parse list/ranking info in front end
+    """
 
     # If one EpicList (on specific list page), format differently
     # than if you have a list of EpicLists like in the home screen or
@@ -323,13 +327,21 @@ def send_list(list_id):
 
 
 def organize_characters(queries, lst, new):
-    """Prepares and adds characters to a list (ranked and unranked)
-    Last field regards to if list is a new list or editing an already made list"""
+    """
+    Used when editing or creating a new list
+
+    Prepares and adds characters to a list (ranked and unranked)
+
+    Last field regards to if list is a new list or editing an already made list
+    """
     # Add characters to list
     # Add char ids to a list to iterate later if list is ranked
     char_ids = []
     lst.characters.clear()
 
+    # If the list is ranked and being edited (not a new list) then delete
+    # the current ranks of the characters in the list so any ranking changes
+    # work accordingly
     if lst.is_ranked and not new:
         lc = ListCharacter.query.filter(ListCharacter.list_id == lst.id).all()
         for char in lc:
@@ -410,7 +422,9 @@ def convert_guids_to_api_queries(guid_string):
     query_list = []
     for guid in guid_list:
         query = f"https://www.giantbomb.com/api/character/{guid}/?api_key=7257597392c1160f53ddc5354ec336518380ec17&format=json"
-        query_list.append(query)
+        g_and_q = {"guid": guid,
+                   "query": query}
+        query_list.append(g_and_q)
 
     return query_list
 
@@ -420,14 +434,14 @@ def initialize_character(query):
     if char not added queries API to get character data and creates
     character in DB"""
 
-    res = requests.get(query, headers=HEADERS)
-    data = json.loads(res.text)
-    char_info = data["results"]
-
     char = Character.query.filter(
-        Character.guid == char_info["guid"]).all()
+        Character.guid == query["guid"]).all()
 
     if not char:
+        res = requests.get(query["query"], headers=HEADERS)
+        data = json.loads(res.text)
+        char_info = data["results"]
+
         new_char = Character(
             guid=char_info["guid"],
             name=char_info["name"],
