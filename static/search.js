@@ -210,6 +210,7 @@ function handleRankedCheckbox() {
             characterButton.innerHTML = "";
         }
     }
+    formCharacters.value = toForm(currentList);
     showList()
 }
 
@@ -221,9 +222,11 @@ async function fillListForEdit() {
 
         const req = await axios.get(`/get-list/${listId}`)
         characters = req.data.characters
+        console.log(characters)
         for (char of characters) {
             currentList.push(char)
         }
+        formCharacters.value = toForm(currentList);
         showList()
     }
 
