@@ -86,8 +86,7 @@
         </div>
         {% endfor %}
         {% if user.public_lists() | length < 1 %}
-        <br>
-        <div class="text-center">
+        <div class="text-center mt-5">
             {% if own_profile %}
             <p>You haven't created any public lists yet, you can <a href="/lists/new">create one
                     now!</a></p>
