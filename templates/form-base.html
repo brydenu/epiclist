@@ -3,7 +3,7 @@
 <div class="row justify-content-center vertical-center">
     <div class="col-md-8 col-sm-12">
         <div class="row jumbotron text-center">
-            <div class="col-sm-8 col-md-6 mx-auto text-center">
+            <div class="col-sm-10 col-md-8 mx-auto text-center">
 
                 {% block before_form %}
                 {% endblock %}
@@ -16,7 +16,7 @@
                     {% endfor %}
                     <div class="form-group p-3 text-left">
                         <div>{{ field.label }}</div>
-                        <div>{{ field() }}</div>
+                        <div>{{ field(class_="form-control") }}</div>
                     </div>
                     {% endfor %}
 
