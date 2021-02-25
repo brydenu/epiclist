@@ -10,13 +10,12 @@ from models import db, connect_db, User, Follows, Character, List, ListCharacter
 app = Flask(__name__)
 
 
-# os.environ.get("DATABASE_URL")
-app.config["SQLALCHEMY_DATABASE_URI"] = "postgres:///epiclist"
+app.config["SQLALCHEMY_DATABASE_URI"] = os.environ.get(
+    "DATABASE_URL", "postgres:///epiclist")
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 app.config["SQLALCHEMY_ECHO"] = True
 app.config["DEBUG_TB_INTERCEPT_REDIRECTS"] = False
-# os.environ.get('SECRET_KEY', "secretkey2")
-app.config["SECRET_KEY"] = "Secret"
+app.config["SECRET_KEY"] = os.environ.get('SECRET_KEY', "secretkey2")
 
 toolbar = DebugToolbarExtension(app)
 connect_db(app)
