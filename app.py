@@ -512,8 +512,10 @@ def edit_profile(username):
     if g.user.username != username:
         flash("You don't have permission to do that", "danger")
         return redirect("/")
-    if g.user.image_url == DEFAULT_IMAGE_URL
-    g.user.image_url = ""
+
+    if g.user.image_url == DEFAULT_IMAGE_URL:
+        g.user.image_url = ""
+
     form = EditUserForm(obj=g.user)
 
     if form.validate_on_submit():
