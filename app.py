@@ -10,8 +10,7 @@ from models import db, connect_db, User, Follows, Character, List, ListCharacter
 app = Flask(__name__)
 
 
-app.config["SQLALCHEMY_DATABASE_URI"] = os.environ.get(
-    "DATABASE_URL", "postgres:///epiclist")
+app.config["SQLALCHEMY_DATABASE_URI"] == os.environ.get("DATABASE_URL", "postgres:///epiclist")
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 app.config["SQLALCHEMY_ECHO"] = True
 app.config["DEBUG_TB_INTERCEPT_REDIRECTS"] = False
@@ -486,6 +485,10 @@ def search_db(char_guid):
 @app.route("/users/<username>")
 def show_profile(username):
     """Shows user profile"""
+
+    if not g.user:
+        flash("You must sign in or register before you can do that", "danger")
+        return redirect("/register-home")
 
     own_profile = False
 
