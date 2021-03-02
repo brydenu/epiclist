@@ -130,6 +130,11 @@ function handleAdd(evt) {
         const arrIndex = div.dataset.index;
 
         char = currentSearch[arrIndex];
+        if (formCharacters.value.includes(char.guid)){
+            alert("Character already in list");
+            showList();
+            return
+        }
 
         currentList.push(char);
         formCharacters.value = toForm(currentList);
