@@ -4,9 +4,9 @@
 {% block content %}
 <div class="container mt-5">
     <div class="jumbotron">
-        <h1 class="display-2 text-center">{{list.list.title}}</h1>
+        <h1 class="display-2 text-center fonted">{{list.list.title}}</h1>
         <form action="/lists/{{list.list.id}}/edit" class="text-center">
-            <h4 class="d-inline"><a href="/users/{{list.list.user.username}}" class="list-user-link">By:
+            <h4 class="d-inline"><a href="/users/{{list.list.user.username}}" class="list-user-link fonted">By:
                     {{list.list.user.username}}</a></h4>
             {% if own_list %}
             <button class="btn btn-sm btn-warning">Edit</button>
@@ -20,12 +20,12 @@
                 <tr>
                     {% if list.list.is_ranked %}
                     <td>
-                        <h2 class="display-2">{{ character.rank }}</h2>
+                        <h2 class="display-2 fonted">{{ character.rank }}</h2>
                     </td>
                     {% endif %}
                     <td class="text-center"><img src="{{ character.character.image_url }}"
                             alt="Image of {{ character.character.name }}" class="list-page-image">
-                        <h4 class="display-4">{{ character.character.name }}</h2>
+                        <h4 class="display-4 fonted">{{ character.character.name }}</h2>
                     </td>
                 </tr>
                 {% endfor %}

@@ -8,13 +8,15 @@
         integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
     <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.3.1/css/all.css">
     <link rel="stylesheet" href="/static/style.css">
+    <link rel="preconnect" href="https://fonts.gstatic.com">
+    <link href="https://fonts.googleapis.com/css2?family=Metamorphous&display=swap" rel="stylesheet">
     <title>{% block title %}{% endblock %}</title>
 </head>
 
 <body>
     {% if g.user %}
-    <nav class="navbar navbar-expand-md navbar-dark bg-dark sticky-top">
-        <a class="navbar-brand" href="/">EpicList</a>
+    <nav class="navbar navbar-custom border-bottom border-light navbar-expand-md navbar-dark sticky-top">
+        <a class="navbar-brand fonted" href="/">EpicList</a>
         <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarText"
             aria-controls="navbarText" aria-expanded="false" aria-label="Toggle navigation"></button>
         </button>
@@ -27,7 +29,7 @@
                     <a class="nav-link" href="/users/{{g.user.username}}">Profile</a>
                 </li>
                 <li class="nav-item">
-                    <a href="/lists/new" class="btn btn-secondary">New List</a>
+                    <a href="/lists/new" class="btn btn-light">New List</a>
 
                 </li>
             </ul>

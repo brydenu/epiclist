@@ -2,13 +2,13 @@
 {% block title %}Create a new Epic List{% endblock %}
 
 {% block content %}
-<div class="header text-center mt-5">
-    <h1>New Epic List</h1>
-    <p>Search for characters to add to your new Epic List!</p>
+<div class="header text-center mt-3 jumbotron">
+    <h1 class="fonted">New Epic List</h1>
+    <p style="color:white">Search for characters to add to your new Epic List!</p>
 </div>
 <div class="container-fluid text-center">
     <div class="row">
-        <div class="col jumbotron m-1">
+        <div class="col jumbotron m-1 new-list-jumbo">
             <h2 class="mt-5">Search for characters</h2>
             <form action="" onsubmit="return false">
                 <label for="character-name">Character name:</label>
@@ -17,7 +17,7 @@
                 <div class="container m-3" id="search-results"></div>
             </form>
         </div>
-        <div class="col jumbotron m-1">
+        <div class="col jumbotron m-1 new-list-jumbo">
             <h2 class="mt-5">Create a New List</h2>
             <form action="/lists/new" method="POST">
                 {% for field in form if field.widget.input_type != 'hidden' %}
@@ -46,5 +46,4 @@
     integrity="sha512-otOZr2EcknK9a5aa3BbMR9XOjYKtxxscwyRHN6zmdXuRfJ5uApkHB7cz1laWk2g8RKLzV9qv/fl3RPwfCuoxHQ=="
     crossorigin="anonymous"></script>
 <script src="/static/search.js"></script>
-<script src="/static/list-methods.js"></script>
 {% endblock %}

@@ -9,7 +9,7 @@
             <img src="{{user.image_url}}" alt="Image of {{user.username}}" id="user-profile-image">
         </div>
         <div class="col-10 align-self-center">
-            <h1 class="display-4">{{user.username}}</h1>
+            <h1 class="display-4 fonted">{{user.username}}</h1>
             {% if not own_profile %}
             {% if user not in g.user.following %}
             <form action="/users/{{user.id}}/follow" method="POST">
@@ -42,7 +42,7 @@
         </div>
     </div>
     <div class="col-8 jumbotron text-center" id="profile-lists-jumbo">
-        <h1 class="display-4">Lists by {{user.username}}</h1>
+        <h1 class="display-4 fonted">Lists by {{user.username}}</h1>
         {% if own_profile %}
         <small><a href="/users/{{user.username}}/private-lists">See your private lists</a></small>
         {% endif %}
@@ -86,7 +86,7 @@
         </div>
         {% endfor %}
         {% if user.public_lists() | length < 1 %}
-        <div class="text-center mt-5">
+        <div class="text-center mt-5" style="color:white">
             {% if own_profile %}
             <p>You haven't created any public lists yet, you can <a href="/lists/new">create one
                     now!</a></p>

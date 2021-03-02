@@ -18,12 +18,12 @@
         </div>
         <div class="col-lg-9 col-md-12">
             <div class="jumbotron">
-                <h1 class="display-3 text-center m-1">Lists</h1>
+                <h1 class="display-3 text-center m-1 fonted" style="color:white;">Lists</h1>
                 <div class="text-center mb-1">
                     {% if filtered %}
-                    <a href="/">All Lists</a> | <a href="/?filter=true"><b>Users you follow</b></a>
+                    <a href="/">All Lists</a> | <a href="/?filter=true" style="color:white"><b>Users you follow</b></a>
                     {% else %}
-                    <a href="/"><b>All Lists</b></a> | <a href="/?filter=true">Users you follow</a>
+                    <a href="/" style="color:white"><b>All Lists</b></a> | <a href="/?filter=true">Users you follow</a>
                     {% endif %}
                 </div>
                 {% for dict_item in lists %}
