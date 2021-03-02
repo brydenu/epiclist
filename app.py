@@ -10,7 +10,7 @@ from models import db, connect_db, User, Follows, Character, List, ListCharacter
 app = Flask(__name__)
 
 
-app.config["SQLALCHEMY_DATABASE_URI"] == os.environ.get("DATABASE_URL", "postgres:///epiclist")
+app.config["SQLALCHEMY_DATABASE_URI"] = os.environ.get("DATABASE_URL", "postgres:///epiclist")
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 app.config["SQLALCHEMY_ECHO"] = True
 app.config["DEBUG_TB_INTERCEPT_REDIRECTS"] = False
