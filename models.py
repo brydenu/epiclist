@@ -79,7 +79,7 @@ class User(db.Model):
             List.is_private == False).all()
 
     @classmethod
-    def signup(cls, username, password, image_url):
+    def signup(cls, username, password, image_url=DEFAULT_IMAGE_URL):
         """Creates user with hashed password"""
 
         hashed_pwd = bcrypt.generate_password_hash(password).decode('UTF-8')
@@ -125,6 +125,10 @@ class List(db.Model):
 
     characters = db.relationship('Character', secondary="lists_characters")
 
+    def __repr__(self):
+        """Representation of instance"""
+        return f"<List Instance | ID: {self.id} | Name: {self.name} | Created by: {self.user_id} - {self.user.username}>"
+
 
 class Character(db.Model):
     """Characters to be added to lists"""
@@ -140,6 +144,10 @@ class Character(db.Model):
     game = db.Column(db.Text, nullable=False)
 
     image_url = db.Column(db.Text, nullable=True)
+
+    def __repr__(self):
+        """Representation of instance"""
+        return f"<Character Instance | ID: {self.id} | Name: {self.name} | Game: {self.game}>"
 
 
 class ListCharacter(db.Model):
@@ -158,3 +166,7 @@ class ListCharacter(db.Model):
     rank = db.Column(db.Integer, nullable=True)
 
     characters = db.relationship('Character', backref="lists_characters")
+
+    def __repr__(self):
+        """Represention of instance"""
+        return f"<ListCharacter Instance | ID: {self.id} | Character: {self.character_id} ({self.characters.name}) | List: {self.list_id}>"
