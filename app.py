@@ -22,7 +22,6 @@ connect_db(app)
 db.create_all()
 
 CURR_USER_KEY = "curr_user"
-CURR_USER_USERNAME = "curr_user_username"
 HEADERS = {"User-Agent": "EpicListSearchBot"}
 
 
@@ -339,7 +338,7 @@ def organize_characters(queries, lst, new):
 
     # If the list is ranked and being edited (not a new list) then delete
     # the current ranks of the characters in the list so any ranking changes
-    # work accordingly
+    # are replaced without duplicates
     if lst.is_ranked and not new:
         lc = ListCharacter.query.filter(ListCharacter.list_id == lst.id).all()
         for char in lc:
@@ -469,17 +468,6 @@ def game_list_to_string(game_list):
     return games
 
 
-def search_db(char_guid):
-    """Searches database of already saved characters for information,
-    If no information is found, create a new character instance with the
-    information given."""
-
-    char = Character.query.filter(Character.guid == char_guid).all()
-
-    if char_guid:
-        return char[0]
-
-
 ####### USER FUNCTIONS ###############################
 
 @app.route("/users/<username>")
@@ -606,7 +594,7 @@ def unollow_user(user_id):
 def see_private_lists(username):
     """Page to see user's private lists (only way you can see private lists)"""
 
-    if not g.user and g.user.username != username:
+    if not g.user or g.user.username != username:
         flash("You don't have permission to see that", "danger")
         return redirect("/")
 
