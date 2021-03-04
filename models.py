@@ -24,6 +24,9 @@ class Follows(db.Model):
 
     user_following = db.Column(db.Integer, db.ForeignKey(
         'users.id', ondelete="cascade"), primary_key=True)
+    
+    def __repr__(self):
+        return f"<Follow Instance | Being Followed: {self.user_being_followed} | Follower: {self.user_following}>"
 
 
 class User(db.Model):
@@ -127,7 +130,7 @@ class List(db.Model):
 
     def __repr__(self):
         """Representation of instance"""
-        return f"<List Instance | ID: {self.id} | Name: {self.name} | Created by: {self.user_id} - {self.user.username}>"
+        return f"<List Instance | List ID: {self.id} | Name: {self.title} | User ID: {self.user_id}>"
 
 
 class Character(db.Model):
@@ -169,4 +172,4 @@ class ListCharacter(db.Model):
 
     def __repr__(self):
         """Represention of instance"""
-        return f"<ListCharacter Instance | ID: {self.id} | Character: {self.character_id} ({self.characters.name}) | List: {self.list_id}>"
+        return f"<ListCharacter Instance | ID: {self.id} | Character: {self.character_id} ({self.characters.name}) | List: {self.list_id} | Rank in list: {self.rank}>"
